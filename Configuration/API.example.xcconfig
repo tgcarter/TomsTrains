@@ -1,0 +1,4 @@
+// Copy to API.xcconfig and fill in the consumer key for each subscription.
+NATIONAL_RAIL_BOARD_API_KEY =
+NATIONAL_RAIL_QUERY_SERVICES_API_KEY =
+NATIONAL_RAIL_REFERENCE_API_KEY =

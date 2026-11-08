@@ -1,0 +1,717 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		009276253587AA0CD1D519E0 /* Shared/Board/DepartureBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC14770D73524C2D79B6A70 /* Shared/Board/DepartureBoard.swift */; };
+		010CDE4A54B34B5FABC712FC /* Shared/Services/NationalRailReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D022DE28CB487CB7E81301 /* Shared/Services/NationalRailReference.swift */; };
+		09FFF05A5F549198CF81935A /* Shared/Time/JourneyDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */; };
+		0F1AE1BC525415DFA06EFFE3 /* Shared/Networking/RailHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F83CDDC8C99C9DB0B6E65C /* Shared/Networking/RailHTTPClient.swift */; };
+		10A59BF3E74038B25E129249 /* TomsTrainsTests/DepartureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35D600923D5D542BD83C358A /* TomsTrainsTests/DepartureTests.swift */; };
+		1AB8303F46438AB6293618B7 /* Shared/Networking/DarwinResponseCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */; };
+		234DC786C536EAB3DCD980D9 /* Shared/Models/ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A70098C534710A593BD8C95 /* Shared/Models/ServiceStatus.swift */; };
+		24ACDD8CB46558FDCBBE7870 /* Shared/Services/DepartureProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3277A37CF7AC3EB2FDE9F1D /* Shared/Services/DepartureProviding.swift */; };
+		275FA1B9FF10B4B277DCFB59 /* TomsTrains/Details/JourneyStopRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806406AAA3AB6B7D3ADE757E /* TomsTrains/Details/JourneyStopRow.swift */; };
+		29B8E4F2ABA6E217EC220148 /* TomsTrains/Style/ServiceStatusStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C4D72976BB8D228BAB6FAB /* TomsTrains/Style/ServiceStatusStyle.swift */; };
+		2A1DAB7C9984F90B636E28A9 /* Shared/Time/RailTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C53D02B284787CDFAA992BA1 /* Shared/Time/RailTime.swift */; };
+		2E03FC9C8D896B37E45626A1 /* TomsTrains/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A8909ABE156E9299018B3C72 /* TomsTrains/Assets.xcassets */; };
+		2EB387026C0E809BEE2FC57A /* Shared/Networking/RailAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF8FB85D1C81022730A6100 /* Shared/Networking/RailAPIError.swift */; };
+		310B56A4D6B3C2F309E3DCA1 /* TomsTrainsTests/DepartureBoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149429A2F706D3A289AD10E8 /* TomsTrainsTests/DepartureBoardTests.swift */; };
+		31783168486D8CBB7ECB48DE /* TomsTrains/Board/DepartureBoardHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7777649A0C04C5331EF63409 /* TomsTrains/Board/DepartureBoardHeader.swift */; };
+		319A00D1FF107D64F94E3F54 /* Shared/Settings/RouteSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48BF109BC16A8F1173CC109A /* Shared/Settings/RouteSettings.swift */; };
+		3D178E5F29524F24A35653CD /* Shared/Models/StationNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 679904ED7D8149BDB498AD01 /* Shared/Models/StationNotice.swift */; };
+		40A698CC42128598FEAD0265 /* Shared/Networking/RailHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F83CDDC8C99C9DB0B6E65C /* Shared/Networking/RailHTTPClient.swift */; };
+		435B649B28A613B603DA61BF /* Shared/Models/DepartureSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */; };
+		43895B37BA2280F2CE37653B /* TomsTrains/Style/AppAppearanceStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D9762842E48FA144670C14 /* TomsTrains/Style/AppAppearanceStyle.swift */; };
+		4A6589383EB04D3EAC011E2D /* Shared/Models/StationNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 679904ED7D8149BDB498AD01 /* Shared/Models/StationNotice.swift */; };
+		5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Settings/StationPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */; };
+		57397C7BFD1459A51304A450 /* Shared/Models/DepartureSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */; };
+		5FBB545EEAFEA09B5775D711 /* Shared/Time/RailDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54667E600F23DF285D579FD /* Shared/Time/RailDate.swift */; };
+		672EC4FE9FF1DC042036D6D3 /* Shared/Models/ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A70098C534710A593BD8C95 /* Shared/Models/ServiceStatus.swift */; };
+		687D7A690F1AC95807D4A7A7 /* Shared/Models/TrackedJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD107BB968B0C67D2C0A427 /* Shared/Models/TrackedJourney.swift */; };
+		6992107F884BE1CF16E70359 /* TomsTrainsTests/AutoTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D354744FB8DA05EF24D96E8 /* TomsTrainsTests/AutoTrackingTests.swift */; };
+		6C39F77DF49E4FD780059FD8 /* TomsTrains/Board/StationNoticeViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67EC0EA9DED848849B62B957 /* TomsTrains/Board/StationNoticeViews.swift */; };
+		6EEB4FB1EC929BD777D1B91F /* Shared/Models/AutoTrackingRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 128C32B90C55896D144F8898 /* Shared/Models/AutoTrackingRule.swift */; };
+		7087EEC983A8FCC292865C98 /* Shared/Board/EarlierDeparturePagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A4299FC78B250AF478E49A /* Shared/Board/EarlierDeparturePagination.swift */; };
+		72AEFD08680AEF84EDA9B2B5 /* Shared/Models/Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3872031090C7A54565AB9723 /* Shared/Models/Departure.swift */; };
+		750874FED0AA285E61F278E0 /* Shared/Models/AutoTrackingRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 128C32B90C55896D144F8898 /* Shared/Models/AutoTrackingRule.swift */; };
+		792809A1F755918DC7A6F919 /* TomsTrains/Board/DepartureBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A5987C2678AB63BD6E9ED4 /* TomsTrains/Board/DepartureBoardView.swift */; };
+		7B0750BDD04F47864D32CC2E /* Shared/Time/RailTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C53D02B284787CDFAA992BA1 /* Shared/Time/RailTime.swift */; };
+		7B0E347233D982AB514E88AE /* Shared/Models/Station.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E9C5F3188009B4C9B27478 /* Shared/Models/Station.swift */; };
+		7D38221A3856F03E62E3293D /* TomsTrains/Settings/AutoTrackingEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E84D004B0AD0CC1BA02AB02B /* TomsTrains/Settings/AutoTrackingEditor.swift */; };
+		7D87C8BA343E2CBB23CFA472 /* Shared/Settings/RouteSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48BF109BC16A8F1173CC109A /* Shared/Settings/RouteSettings.swift */; };
+		8180471BADD30A7F25EFA4BF /* TomsTrainsTests/NationalRailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48B16C5B0B198BB787EF7E60 /* TomsTrainsTests/NationalRailTests.swift */; };
+		827278F0DB47F58E5001B738 /* Shared/Tracking/TrackingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4170635CB49289317322568C /* Shared/Tracking/TrackingStore.swift */; };
+		83FF56F3864E571E1F2C6C37 /* TomsTrainsTests/RouteStopStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F783583F4B6F35D3AEC4AD77 /* TomsTrainsTests/RouteStopStatusTests.swift */; };
+		8966449728192E1D716ACE6F /* Shared/Time/RailDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54667E600F23DF285D579FD /* Shared/Time/RailDate.swift */; };
+		8A391F5146EDDD3F113EBD26 /* TomsTrainsTests/RouteSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 506BE3F8C6E456433C86CD11 /* TomsTrainsTests/RouteSettingsTests.swift */; };
+		8EDD3FEC9309378541572A5E /* TomsTrainsTests/BoardFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F7D30955BEF9F9895EEEE8 /* TomsTrainsTests/BoardFixtures.swift */; };
+		920353028C61A6CCD50E756A /* Shared/Models/RouteStop.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EE67F9EABB24D998ADD5C0 /* Shared/Models/RouteStop.swift */; };
+		99555701BF4D0BC2519CA665 /* Shared/Tracking/TrainTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4350008EF96726EE02EB6B /* Shared/Tracking/TrainTracker.swift */; };
+		9BD0386EA9C4AD616DD08374 /* TomsTrains/Board/OperatorLogoArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918212A24BD81C28C229148F /* TomsTrains/Board/OperatorLogoArtwork.swift */; };
+		9E3142F53DF21FAD212F8057 /* Shared/Models/Station.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E9C5F3188009B4C9B27478 /* Shared/Models/Station.swift */; };
+		A024D1C55FDF823B6A583470 /* TomsTrains/TomsTrainsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6876F4ECBA191E7A025E470B /* TomsTrains/TomsTrainsApp.swift */; };
+		A08EAD7C23DE42179E1A6801 /* TomsTrains/Style/NationalRailAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = A08EAD7C23DE42179E1A6802 /* TomsTrains/Style/NationalRailAttribution.swift */; };
+		A70B17E8BEBA300D81D87CA4 /* TomsTrains/Details/DepartureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C27148B27B36B3850C5C9FA3 /* TomsTrains/Details/DepartureDetailView.swift */; };
+		A804C9E934B602A4FE7FF2E0 /* Shared/Services/StationDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7350287E5720DFCD4E1D83E0 /* Shared/Services/StationDirectory.swift */; };
+		A966AA29320D249A840E8934 /* Shared/Services/DepartureProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3277A37CF7AC3EB2FDE9F1D /* Shared/Services/DepartureProviding.swift */; };
+		ACC28C81058D4944BE72151C /* Shared/Services/NationalRailReference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D022DE28CB487CB7E81301 /* Shared/Services/NationalRailReference.swift */; };
+		B01800100000000000000001 /* Shared/Models/ServiceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */; };
+		B01800100000000000000002 /* Shared/Models/ServiceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */; };
+		B01800100000000000000004 /* TomsTrains/Details/ServiceSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */; };
+		B0C9F4CA49A798669495539F /* Shared/Services/NationalRailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */; };
+		B260A5A0FCA8AF6ED2160125 /* TomsTrains/Settings/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C59E185C1151529469BA90 /* TomsTrains/Settings/SettingsView.swift */; };
+		B47B200FB914AACC643CE54D /* Shared/Services/Darwin/DarwinDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE13F837F5135F2260795689 /* Shared/Services/Darwin/DarwinDecoder.swift */; };
+		B816622E74DA102E0B2DD5DA /* Shared/Services/StationDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7350287E5720DFCD4E1D83E0 /* Shared/Services/StationDirectory.swift */; };
+		B87BD8F0A4B9143A8ED3121E /* TomsTrains/Board/DepartureRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 923ECF3FD2427DF74401C37B /* TomsTrains/Board/DepartureRow.swift */; };
+		BB8B1C1DB060D292A61453C2 /* Shared/Services/NationalRailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */; };
+		C14291DAFF6371A03DBA6DC9 /* Shared/Models/RouteStop.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EE67F9EABB24D998ADD5C0 /* Shared/Models/RouteStop.swift */; };
+		C64DDC2EBC516729019E4776 /* Shared/Board/EarlierDeparturePagination.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A4299FC78B250AF478E49A /* Shared/Board/EarlierDeparturePagination.swift */; };
+		C9D3A55F936F58D7C6DA3A83 /* TomsTrainsTests/DestinationHeadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34D2EDFD6DA4DE73A698A9C /* TomsTrainsTests/DestinationHeadingTests.swift */; };
+		CC453F82B4109948A87B5E92 /* TomsTrains/Board/DepartureLoadingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79773220DE3C278F8F78076A /* TomsTrains/Board/DepartureLoadingViews.swift */; };
+		CEC3CA79942BE759D916F91D /* Shared/Tracking/TrainTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A4350008EF96726EE02EB6B /* Shared/Tracking/TrainTracker.swift */; };
+		CEE4DC9276A0B234BB6E836B /* Shared/Tracking/TrackingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4170635CB49289317322568C /* Shared/Tracking/TrackingStore.swift */; };
+		D0750E24B612606E9DA94068 /* Shared/Models/TrackedJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD107BB968B0C67D2C0A427 /* Shared/Models/TrackedJourney.swift */; };
+		D8D5CF608A23BD6BF5CD771E /* Shared/Models/Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3872031090C7A54565AB9723 /* Shared/Models/Departure.swift */; };
+		E05E8A6EE28F3D71EEC1266B /* Shared/Networking/RailAPIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF8FB85D1C81022730A6100 /* Shared/Networking/RailAPIError.swift */; };
+		E2A83772CC6896B6B6894D74 /* TomsTrainsTests/StationDirectoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2412F49E3033215D5D87DBCA /* TomsTrainsTests/StationDirectoryTests.swift */; };
+		E9F69AE949AF8831486A2232 /* Shared/Services/Darwin/DarwinDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE13F837F5135F2260795689 /* Shared/Services/Darwin/DarwinDecoder.swift */; };
+		EF49780112448C41B18B607B /* Shared/Board/DepartureBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC14770D73524C2D79B6A70 /* Shared/Board/DepartureBoard.swift */; };
+		EFF8576DEDCB8E30755B733A /* Shared/Networking/DarwinResponseCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */; };
+		F411951B0C516882E88F001B /* Shared/Time/JourneyDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00A5987C2678AB63BD6E9ED4 /* TomsTrains/Board/DepartureBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/DepartureBoardView.swift; sourceTree = SOURCE_ROOT; };
+		043803CC4A933EB87E0D5588 /* Configuration/App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Configuration/App.xcconfig; sourceTree = SOURCE_ROOT; };
+		05C59E185C1151529469BA90 /* TomsTrains/Settings/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Settings/SettingsView.swift; sourceTree = SOURCE_ROOT; };
+		0EA94082CA24CAC793ED90C0 /* TomsTrainsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TomsTrainsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		128C32B90C55896D144F8898 /* Shared/Models/AutoTrackingRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/AutoTrackingRule.swift; sourceTree = SOURCE_ROOT; };
+		149429A2F706D3A289AD10E8 /* TomsTrainsTests/DepartureBoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/DepartureBoardTests.swift; sourceTree = SOURCE_ROOT; };
+		2412F49E3033215D5D87DBCA /* TomsTrainsTests/StationDirectoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/StationDirectoryTests.swift; sourceTree = SOURCE_ROOT; };
+		2DD107BB968B0C67D2C0A427 /* Shared/Models/TrackedJourney.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/TrackedJourney.swift; sourceTree = SOURCE_ROOT; };
+		3249C942C1F52F084F9957E1 /* TomsTrains.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TomsTrains.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		33D022DE28CB487CB7E81301 /* Shared/Services/NationalRailReference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/NationalRailReference.swift; sourceTree = SOURCE_ROOT; };
+		35D600923D5D542BD83C358A /* TomsTrainsTests/DepartureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/DepartureTests.swift; sourceTree = SOURCE_ROOT; };
+		3872031090C7A54565AB9723 /* Shared/Models/Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/Departure.swift; sourceTree = SOURCE_ROOT; };
+		4170635CB49289317322568C /* Shared/Tracking/TrackingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Tracking/TrackingStore.swift; sourceTree = SOURCE_ROOT; };
+		43D9762842E48FA144670C14 /* TomsTrains/Style/AppAppearanceStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Style/AppAppearanceStyle.swift; sourceTree = SOURCE_ROOT; };
+		48B16C5B0B198BB787EF7E60 /* TomsTrainsTests/NationalRailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/NationalRailTests.swift; sourceTree = SOURCE_ROOT; };
+		48BF109BC16A8F1173CC109A /* Shared/Settings/RouteSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Settings/RouteSettings.swift; sourceTree = SOURCE_ROOT; };
+		4A4350008EF96726EE02EB6B /* Shared/Tracking/TrainTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Tracking/TrainTracker.swift; sourceTree = SOURCE_ROOT; };
+		4A70098C534710A593BD8C95 /* Shared/Models/ServiceStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/ServiceStatus.swift; sourceTree = SOURCE_ROOT; };
+		4BC14770D73524C2D79B6A70 /* Shared/Board/DepartureBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Board/DepartureBoard.swift; sourceTree = SOURCE_ROOT; };
+		506BE3F8C6E456433C86CD11 /* TomsTrainsTests/RouteSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/RouteSettingsTests.swift; sourceTree = SOURCE_ROOT; };
+		5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/NationalRailProvider.swift; sourceTree = SOURCE_ROOT; };
+		679904ED7D8149BDB498AD01 /* Shared/Models/StationNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/StationNotice.swift; sourceTree = SOURCE_ROOT; };
+		67EC0EA9DED848849B62B957 /* TomsTrains/Board/StationNoticeViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/StationNoticeViews.swift; sourceTree = SOURCE_ROOT; };
+		6876F4ECBA191E7A025E470B /* TomsTrains/TomsTrainsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/TomsTrainsApp.swift; sourceTree = SOURCE_ROOT; };
+		72C4D72976BB8D228BAB6FAB /* TomsTrains/Style/ServiceStatusStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Style/ServiceStatusStyle.swift; sourceTree = SOURCE_ROOT; };
+		7350287E5720DFCD4E1D83E0 /* Shared/Services/StationDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/StationDirectory.swift; sourceTree = SOURCE_ROOT; };
+		7777649A0C04C5331EF63409 /* TomsTrains/Board/DepartureBoardHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/DepartureBoardHeader.swift; sourceTree = SOURCE_ROOT; };
+		79773220DE3C278F8F78076A /* TomsTrains/Board/DepartureLoadingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/DepartureLoadingViews.swift; sourceTree = SOURCE_ROOT; };
+		806406AAA3AB6B7D3ADE757E /* TomsTrains/Details/JourneyStopRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Details/JourneyStopRow.swift; sourceTree = SOURCE_ROOT; };
+		918212A24BD81C28C229148F /* TomsTrains/Board/OperatorLogoArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/OperatorLogoArtwork.swift; sourceTree = SOURCE_ROOT; };
+		91E9C5F3188009B4C9B27478 /* Shared/Models/Station.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/Station.swift; sourceTree = SOURCE_ROOT; };
+		923ECF3FD2427DF74401C37B /* TomsTrains/Board/DepartureRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/DepartureRow.swift; sourceTree = SOURCE_ROOT; };
+		9D354744FB8DA05EF24D96E8 /* TomsTrainsTests/AutoTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/AutoTrackingTests.swift; sourceTree = SOURCE_ROOT; };
+		A08EAD7C23DE42179E1A6802 /* TomsTrains/Style/NationalRailAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Style/NationalRailAttribution.swift; sourceTree = SOURCE_ROOT; };
+		A8909ABE156E9299018B3C72 /* TomsTrains/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = TomsTrains/Assets.xcassets; sourceTree = SOURCE_ROOT; };
+		AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Networking/DarwinResponseCache.swift; sourceTree = SOURCE_ROOT; };
+		B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/ServiceSummary.swift; sourceTree = SOURCE_ROOT; };
+		B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Details/ServiceSummaryView.swift; sourceTree = SOURCE_ROOT; };
+		B3F83CDDC8C99C9DB0B6E65C /* Shared/Networking/RailHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Networking/RailHTTPClient.swift; sourceTree = SOURCE_ROOT; };
+		B5A4299FC78B250AF478E49A /* Shared/Board/EarlierDeparturePagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Board/EarlierDeparturePagination.swift; sourceTree = SOURCE_ROOT; };
+		B8F7D30955BEF9F9895EEEE8 /* TomsTrainsTests/BoardFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/BoardFixtures.swift; sourceTree = SOURCE_ROOT; };
+		C27148B27B36B3850C5C9FA3 /* TomsTrains/Details/DepartureDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Details/DepartureDetailView.swift; sourceTree = SOURCE_ROOT; };
+		C53D02B284787CDFAA992BA1 /* Shared/Time/RailTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Time/RailTime.swift; sourceTree = SOURCE_ROOT; };
+		D34D2EDFD6DA4DE73A698A9C /* TomsTrainsTests/DestinationHeadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/DestinationHeadingTests.swift; sourceTree = SOURCE_ROOT; };
+		D7EE67F9EABB24D998ADD5C0 /* Shared/Models/RouteStop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/RouteStop.swift; sourceTree = SOURCE_ROOT; };
+		E84D004B0AD0CC1BA02AB02B /* TomsTrains/Settings/AutoTrackingEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Settings/AutoTrackingEditor.swift; sourceTree = SOURCE_ROOT; };
+		EDF8FB85D1C81022730A6100 /* Shared/Networking/RailAPIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Networking/RailAPIError.swift; sourceTree = SOURCE_ROOT; };
+		EE13F837F5135F2260795689 /* Shared/Services/Darwin/DarwinDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/Darwin/DarwinDecoder.swift; sourceTree = SOURCE_ROOT; };
+		F3277A37CF7AC3EB2FDE9F1D /* Shared/Services/DepartureProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/DepartureProviding.swift; sourceTree = SOURCE_ROOT; };
+		F54667E600F23DF285D579FD /* Shared/Time/RailDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Time/RailDate.swift; sourceTree = SOURCE_ROOT; };
+		F783583F4B6F35D3AEC4AD77 /* TomsTrainsTests/RouteStopStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/RouteStopStatusTests.swift; sourceTree = SOURCE_ROOT; };
+		F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Time/JourneyDirection.swift; sourceTree = SOURCE_ROOT; };
+		FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/DepartureSnapshot.swift; sourceTree = SOURCE_ROOT; };
+		FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Settings/StationPicker.swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0D84675755B2FED6B2FC99F9 /* TomsTrains */ = {
+			isa = PBXGroup;
+			children = (
+				D47E73BE01205DA0F197D0B2 /* Board */,
+				AA718E3B2F54B259447D6730 /* Details */,
+				C1D5D2478FDA9B5DFE032CF2 /* Settings */,
+				E0A6FE41C1E3E8C22317B304 /* Style */,
+				6876F4ECBA191E7A025E470B /* TomsTrains/TomsTrainsApp.swift */,
+			);
+			name = TomsTrains;
+			sourceTree = "<group>";
+		};
+		1F102E3D417D501151200524 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F3F3FE2E076906EEBD2948D9 /* Board */,
+				8D2B5F8DBA7BD59AD4ECAD99 /* Models */,
+				267EE9A77D1123C3FEF7B954 /* Networking */,
+				419A93392BEF6A764D0D6B05 /* Services */,
+				8756B2DF83CC2F09518EF67F /* Settings */,
+				2BBBB97B049F4D72A8BACB69 /* Time */,
+				8A1790E4084D00EE7C1D88E1 /* Tracking */,
+			);
+			name = Shared;
+			sourceTree = "<group>";
+		};
+		267EE9A77D1123C3FEF7B954 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */,
+				EDF8FB85D1C81022730A6100 /* Shared/Networking/RailAPIError.swift */,
+				B3F83CDDC8C99C9DB0B6E65C /* Shared/Networking/RailHTTPClient.swift */,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
+		2BBBB97B049F4D72A8BACB69 /* Time */ = {
+			isa = PBXGroup;
+			children = (
+				F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */,
+				F54667E600F23DF285D579FD /* Shared/Time/RailDate.swift */,
+				C53D02B284787CDFAA992BA1 /* Shared/Time/RailTime.swift */,
+			);
+			name = Time;
+			sourceTree = "<group>";
+		};
+		34C9A2A5D1860334C913ADFE /* Darwin */ = {
+			isa = PBXGroup;
+			children = (
+				EE13F837F5135F2260795689 /* Shared/Services/Darwin/DarwinDecoder.swift */,
+			);
+			name = Darwin;
+			sourceTree = "<group>";
+		};
+		3658F27F7182B06384E6BF78 /* TomsTrainsTests */ = {
+			isa = PBXGroup;
+			children = (
+				149429A2F706D3A289AD10E8 /* TomsTrainsTests/DepartureBoardTests.swift */,
+				9D354744FB8DA05EF24D96E8 /* TomsTrainsTests/AutoTrackingTests.swift */,
+				35D600923D5D542BD83C358A /* TomsTrainsTests/DepartureTests.swift */,
+				B8F7D30955BEF9F9895EEEE8 /* TomsTrainsTests/BoardFixtures.swift */,
+				D34D2EDFD6DA4DE73A698A9C /* TomsTrainsTests/DestinationHeadingTests.swift */,
+				48B16C5B0B198BB787EF7E60 /* TomsTrainsTests/NationalRailTests.swift */,
+				506BE3F8C6E456433C86CD11 /* TomsTrainsTests/RouteSettingsTests.swift */,
+				F783583F4B6F35D3AEC4AD77 /* TomsTrainsTests/RouteStopStatusTests.swift */,
+				2412F49E3033215D5D87DBCA /* TomsTrainsTests/StationDirectoryTests.swift */,
+			);
+			name = TomsTrainsTests;
+			sourceTree = "<group>";
+		};
+		419A93392BEF6A764D0D6B05 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				34C9A2A5D1860334C913ADFE /* Darwin */,
+				F3277A37CF7AC3EB2FDE9F1D /* Shared/Services/DepartureProviding.swift */,
+				5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */,
+				33D022DE28CB487CB7E81301 /* Shared/Services/NationalRailReference.swift */,
+				7350287E5720DFCD4E1D83E0 /* Shared/Services/StationDirectory.swift */,
+			);
+			name = Services;
+			sourceTree = "<group>";
+		};
+		8756B2DF83CC2F09518EF67F /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				48BF109BC16A8F1173CC109A /* Shared/Settings/RouteSettings.swift */,
+			);
+			name = Settings;
+			sourceTree = "<group>";
+		};
+		8A1790E4084D00EE7C1D88E1 /* Tracking */ = {
+			isa = PBXGroup;
+			children = (
+				4170635CB49289317322568C /* Shared/Tracking/TrackingStore.swift */,
+				4A4350008EF96726EE02EB6B /* Shared/Tracking/TrainTracker.swift */,
+			);
+			name = Tracking;
+			sourceTree = "<group>";
+		};
+		8C3CAE929B92155BEC14CDAB /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				043803CC4A933EB87E0D5588 /* Configuration/App.xcconfig */,
+				A8909ABE156E9299018B3C72 /* TomsTrains/Assets.xcassets */,
+			);
+			name = Configuration;
+			sourceTree = "<group>";
+		};
+		8D2B5F8DBA7BD59AD4ECAD99 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				128C32B90C55896D144F8898 /* Shared/Models/AutoTrackingRule.swift */,
+				3872031090C7A54565AB9723 /* Shared/Models/Departure.swift */,
+				B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */,
+				FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */,
+				679904ED7D8149BDB498AD01 /* Shared/Models/StationNotice.swift */,
+				D7EE67F9EABB24D998ADD5C0 /* Shared/Models/RouteStop.swift */,
+				4A70098C534710A593BD8C95 /* Shared/Models/ServiceStatus.swift */,
+				91E9C5F3188009B4C9B27478 /* Shared/Models/Station.swift */,
+				2DD107BB968B0C67D2C0A427 /* Shared/Models/TrackedJourney.swift */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		AA718E3B2F54B259447D6730 /* Details */ = {
+			isa = PBXGroup;
+			children = (
+				C27148B27B36B3850C5C9FA3 /* TomsTrains/Details/DepartureDetailView.swift */,
+				B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */,
+				806406AAA3AB6B7D3ADE757E /* TomsTrains/Details/JourneyStopRow.swift */,
+			);
+			name = Details;
+			sourceTree = "<group>";
+		};
+		B28B7AF69320201D1CF206EB = {
+			isa = PBXGroup;
+			children = (
+				0D84675755B2FED6B2FC99F9 /* TomsTrains */,
+				3658F27F7182B06384E6BF78 /* TomsTrainsTests */,
+				1F102E3D417D501151200524 /* Shared */,
+				8C3CAE929B92155BEC14CDAB /* Configuration */,
+				FBDC4F23F93125BBEEAE800C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C1D5D2478FDA9B5DFE032CF2 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				E84D004B0AD0CC1BA02AB02B /* TomsTrains/Settings/AutoTrackingEditor.swift */,
+				05C59E185C1151529469BA90 /* TomsTrains/Settings/SettingsView.swift */,
+				FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */,
+			);
+			name = Settings;
+			sourceTree = "<group>";
+		};
+		D47E73BE01205DA0F197D0B2 /* Board */ = {
+			isa = PBXGroup;
+			children = (
+				7777649A0C04C5331EF63409 /* TomsTrains/Board/DepartureBoardHeader.swift */,
+				00A5987C2678AB63BD6E9ED4 /* TomsTrains/Board/DepartureBoardView.swift */,
+				79773220DE3C278F8F78076A /* TomsTrains/Board/DepartureLoadingViews.swift */,
+				67EC0EA9DED848849B62B957 /* TomsTrains/Board/StationNoticeViews.swift */,
+				923ECF3FD2427DF74401C37B /* TomsTrains/Board/DepartureRow.swift */,
+				918212A24BD81C28C229148F /* TomsTrains/Board/OperatorLogoArtwork.swift */,
+			);
+			name = Board;
+			sourceTree = "<group>";
+		};
+		E0A6FE41C1E3E8C22317B304 /* Style */ = {
+			isa = PBXGroup;
+			children = (
+				43D9762842E48FA144670C14 /* TomsTrains/Style/AppAppearanceStyle.swift */,
+				72C4D72976BB8D228BAB6FAB /* TomsTrains/Style/ServiceStatusStyle.swift */,
+				A08EAD7C23DE42179E1A6802 /* TomsTrains/Style/NationalRailAttribution.swift */,
+			);
+			name = Style;
+			sourceTree = "<group>";
+		};
+		F3F3FE2E076906EEBD2948D9 /* Board */ = {
+			isa = PBXGroup;
+			children = (
+				4BC14770D73524C2D79B6A70 /* Shared/Board/DepartureBoard.swift */,
+				B5A4299FC78B250AF478E49A /* Shared/Board/EarlierDeparturePagination.swift */,
+			);
+			name = Board;
+			sourceTree = "<group>";
+		};
+		FBDC4F23F93125BBEEAE800C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3249C942C1F52F084F9957E1 /* TomsTrains.app */,
+				0EA94082CA24CAC793ED90C0 /* TomsTrainsTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A6BEFFC332E00268263DC0D2 /* TomsTrains */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F02DF74B3BEA8C6DF8F37614 /* Build configuration list for PBXNativeTarget "TomsTrains" */;
+			buildPhases = (
+				C5409A446FBFC4F29CE20535 /* Sources */,
+				0189424A5A60FED329FA868E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TomsTrains;
+			productName = TomsTrains;
+			productReference = 3249C942C1F52F084F9957E1 /* TomsTrains.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E249908D6DF632544A84EED5 /* TomsTrainsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B02AEBF25EA20A61AC4D1E5 /* Build configuration list for PBXNativeTarget "TomsTrainsTests" */;
+			buildPhases = (
+				304B169B249C606D735C6263 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TomsTrainsTests;
+			productName = TomsTrainsTests;
+			productReference = 0EA94082CA24CAC793ED90C0 /* TomsTrainsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		98F54143AB4E86B28C3AFEE0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+			};
+			buildConfigurationList = 49EA05A46B1A86EA7E413B43 /* Build configuration list for PBXProject "TomsTrains" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B28B7AF69320201D1CF206EB;
+			productRefGroup = FBDC4F23F93125BBEEAE800C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A6BEFFC332E00268263DC0D2 /* TomsTrains */,
+				E249908D6DF632544A84EED5 /* TomsTrainsTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0189424A5A60FED329FA868E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E03FC9C8D896B37E45626A1 /* TomsTrains/Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		304B169B249C606D735C6263 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				310B56A4D6B3C2F309E3DCA1 /* TomsTrainsTests/DepartureBoardTests.swift in Sources */,
+				009276253587AA0CD1D519E0 /* Shared/Board/DepartureBoard.swift in Sources */,
+				7087EEC983A8FCC292865C98 /* Shared/Board/EarlierDeparturePagination.swift in Sources */,
+				750874FED0AA285E61F278E0 /* Shared/Models/AutoTrackingRule.swift in Sources */,
+				D8D5CF608A23BD6BF5CD771E /* Shared/Models/Departure.swift in Sources */,
+				B01800100000000000000002 /* Shared/Models/ServiceSummary.swift in Sources */,
+				435B649B28A613B603DA61BF /* Shared/Models/DepartureSnapshot.swift in Sources */,
+				4A6589383EB04D3EAC011E2D /* Shared/Models/StationNotice.swift in Sources */,
+				920353028C61A6CCD50E756A /* Shared/Models/RouteStop.swift in Sources */,
+				234DC786C536EAB3DCD980D9 /* Shared/Models/ServiceStatus.swift in Sources */,
+				9E3142F53DF21FAD212F8057 /* Shared/Models/Station.swift in Sources */,
+				D0750E24B612606E9DA94068 /* Shared/Models/TrackedJourney.swift in Sources */,
+				1AB8303F46438AB6293618B7 /* Shared/Networking/DarwinResponseCache.swift in Sources */,
+				E05E8A6EE28F3D71EEC1266B /* Shared/Networking/RailAPIError.swift in Sources */,
+				40A698CC42128598FEAD0265 /* Shared/Networking/RailHTTPClient.swift in Sources */,
+				E9F69AE949AF8831486A2232 /* Shared/Services/Darwin/DarwinDecoder.swift in Sources */,
+				A966AA29320D249A840E8934 /* Shared/Services/DepartureProviding.swift in Sources */,
+				B0C9F4CA49A798669495539F /* Shared/Services/NationalRailProvider.swift in Sources */,
+				010CDE4A54B34B5FABC712FC /* Shared/Services/NationalRailReference.swift in Sources */,
+				8EDD3FEC9309378541572A5E /* TomsTrainsTests/BoardFixtures.swift in Sources */,
+				B816622E74DA102E0B2DD5DA /* Shared/Services/StationDirectory.swift in Sources */,
+				7D87C8BA343E2CBB23CFA472 /* Shared/Settings/RouteSettings.swift in Sources */,
+				09FFF05A5F549198CF81935A /* Shared/Time/JourneyDirection.swift in Sources */,
+				5FBB545EEAFEA09B5775D711 /* Shared/Time/RailDate.swift in Sources */,
+				2A1DAB7C9984F90B636E28A9 /* Shared/Time/RailTime.swift in Sources */,
+				CEE4DC9276A0B234BB6E836B /* Shared/Tracking/TrackingStore.swift in Sources */,
+				99555701BF4D0BC2519CA665 /* Shared/Tracking/TrainTracker.swift in Sources */,
+				6992107F884BE1CF16E70359 /* TomsTrainsTests/AutoTrackingTests.swift in Sources */,
+				10A59BF3E74038B25E129249 /* TomsTrainsTests/DepartureTests.swift in Sources */,
+				C9D3A55F936F58D7C6DA3A83 /* TomsTrainsTests/DestinationHeadingTests.swift in Sources */,
+				8180471BADD30A7F25EFA4BF /* TomsTrainsTests/NationalRailTests.swift in Sources */,
+				8A391F5146EDDD3F113EBD26 /* TomsTrainsTests/RouteSettingsTests.swift in Sources */,
+				83FF56F3864E571E1F2C6C37 /* TomsTrainsTests/RouteStopStatusTests.swift in Sources */,
+				E2A83772CC6896B6B6894D74 /* TomsTrainsTests/StationDirectoryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C5409A446FBFC4F29CE20535 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF49780112448C41B18B607B /* Shared/Board/DepartureBoard.swift in Sources */,
+				C64DDC2EBC516729019E4776 /* Shared/Board/EarlierDeparturePagination.swift in Sources */,
+				6EEB4FB1EC929BD777D1B91F /* Shared/Models/AutoTrackingRule.swift in Sources */,
+				72AEFD08680AEF84EDA9B2B5 /* Shared/Models/Departure.swift in Sources */,
+				B01800100000000000000001 /* Shared/Models/ServiceSummary.swift in Sources */,
+				57397C7BFD1459A51304A450 /* Shared/Models/DepartureSnapshot.swift in Sources */,
+				3D178E5F29524F24A35653CD /* Shared/Models/StationNotice.swift in Sources */,
+				C14291DAFF6371A03DBA6DC9 /* Shared/Models/RouteStop.swift in Sources */,
+				672EC4FE9FF1DC042036D6D3 /* Shared/Models/ServiceStatus.swift in Sources */,
+				7B0E347233D982AB514E88AE /* Shared/Models/Station.swift in Sources */,
+				687D7A690F1AC95807D4A7A7 /* Shared/Models/TrackedJourney.swift in Sources */,
+				EFF8576DEDCB8E30755B733A /* Shared/Networking/DarwinResponseCache.swift in Sources */,
+				2EB387026C0E809BEE2FC57A /* Shared/Networking/RailAPIError.swift in Sources */,
+				0F1AE1BC525415DFA06EFFE3 /* Shared/Networking/RailHTTPClient.swift in Sources */,
+				B47B200FB914AACC643CE54D /* Shared/Services/Darwin/DarwinDecoder.swift in Sources */,
+				24ACDD8CB46558FDCBBE7870 /* Shared/Services/DepartureProviding.swift in Sources */,
+				BB8B1C1DB060D292A61453C2 /* Shared/Services/NationalRailProvider.swift in Sources */,
+				ACC28C81058D4944BE72151C /* Shared/Services/NationalRailReference.swift in Sources */,
+				A804C9E934B602A4FE7FF2E0 /* Shared/Services/StationDirectory.swift in Sources */,
+				319A00D1FF107D64F94E3F54 /* Shared/Settings/RouteSettings.swift in Sources */,
+				F411951B0C516882E88F001B /* Shared/Time/JourneyDirection.swift in Sources */,
+				8966449728192E1D716ACE6F /* Shared/Time/RailDate.swift in Sources */,
+				7B0750BDD04F47864D32CC2E /* Shared/Time/RailTime.swift in Sources */,
+				827278F0DB47F58E5001B738 /* Shared/Tracking/TrackingStore.swift in Sources */,
+				CEC3CA79942BE759D916F91D /* Shared/Tracking/TrainTracker.swift in Sources */,
+				31783168486D8CBB7ECB48DE /* TomsTrains/Board/DepartureBoardHeader.swift in Sources */,
+				792809A1F755918DC7A6F919 /* TomsTrains/Board/DepartureBoardView.swift in Sources */,
+				CC453F82B4109948A87B5E92 /* TomsTrains/Board/DepartureLoadingViews.swift in Sources */,
+				6C39F77DF49E4FD780059FD8 /* TomsTrains/Board/StationNoticeViews.swift in Sources */,
+				B87BD8F0A4B9143A8ED3121E /* TomsTrains/Board/DepartureRow.swift in Sources */,
+				9BD0386EA9C4AD616DD08374 /* TomsTrains/Board/OperatorLogoArtwork.swift in Sources */,
+				A70B17E8BEBA300D81D87CA4 /* TomsTrains/Details/DepartureDetailView.swift in Sources */,
+				B01800100000000000000004 /* TomsTrains/Details/ServiceSummaryView.swift in Sources */,
+				275FA1B9FF10B4B277DCFB59 /* TomsTrains/Details/JourneyStopRow.swift in Sources */,
+				7D38221A3856F03E62E3293D /* TomsTrains/Settings/AutoTrackingEditor.swift in Sources */,
+				B260A5A0FCA8AF6ED2160125 /* TomsTrains/Settings/SettingsView.swift in Sources */,
+				5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Settings/StationPicker.swift in Sources */,
+				43895B37BA2280F2CE37653B /* TomsTrains/Style/AppAppearanceStyle.swift in Sources */,
+				29B8E4F2ABA6E217EC220148 /* TomsTrains/Style/ServiceStatusStyle.swift in Sources */,
+				A08EAD7C23DE42179E1A6801 /* TomsTrains/Style/NationalRailAttribution.swift in Sources */,
+				A024D1C55FDF823B6A583470 /* TomsTrains/TomsTrainsApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		13FECC931EECC4F87B00EE0F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 043803CC4A933EB87E0D5588 /* Configuration/App.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = U6YN6353TG;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5005330205C0CFD8229A8471 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 043803CC4A933EB87E0D5588 /* Configuration/App.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = U6YN6353TG;
+				ENABLE_TESTABILITY = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6EECA6DBFF4BA76617FDBDDD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.thomascarter.TomsTrainsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		89E1FD6268CC0F221A2BE178 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Debug;
+		};
+		E6DE6C99132752C914FEF632 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Release;
+		};
+		F3F14856717F6FCCDB123262 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = uk.co.thomascarter.TomsTrainsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		49EA05A46B1A86EA7E413B43 /* Build configuration list for PBXProject "TomsTrains" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				89E1FD6268CC0F221A2BE178 /* Debug */,
+				E6DE6C99132752C914FEF632 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8B02AEBF25EA20A61AC4D1E5 /* Build configuration list for PBXNativeTarget "TomsTrainsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6EECA6DBFF4BA76617FDBDDD /* Debug */,
+				F3F14856717F6FCCDB123262 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F02DF74B3BEA8C6DF8F37614 /* Build configuration list for PBXNativeTarget "TomsTrains" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5005330205C0CFD8229A8471 /* Debug */,
+				13FECC931EECC4F87B00EE0F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 98F54143AB4E86B28C3AFEE0 /* Project object */;
+}
