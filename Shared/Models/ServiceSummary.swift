@@ -4,6 +4,7 @@ import Foundation
 struct ServiceSummary {
     let service: Departure
     var isTracked = false
+    var hasArrived: Bool { TrackedJourney(departure: service).hasArrived }
 
     var title: String {
         guard let origin = service.serviceOrigin else { return "To \(service.destination)" }
@@ -24,6 +25,7 @@ struct ServiceSummary {
     }
 
     var showsStatusPanel: Bool {
+        if hasArrived && service.actualArrival == nil { return false }
         if service.isCancelledAtDestination { return true }
         switch status {
         case .onTime, .early: return false
@@ -32,7 +34,8 @@ struct ServiceSummary {
     }
 
     var position: String? {
-        guard !service.isCancelledAtDestination, let stop = service.lastReportedStop else { return nil }
+        guard !service.isCancelledAtDestination, !hasArrived,
+              let stop = service.lastReportedStop else { return nil }
         if service.isBetweenStations, let next = service.nextReportedStop {
             return "Between \(stop.name) and \(next.name)"
         }
@@ -50,7 +53,7 @@ struct ServiceSummary {
     }
 
     var expectedArrival: Date? {
-        guard service.actualArrival == nil, !service.isCancelledAtDestination else { return nil }
+        guard !hasArrived, service.actualArrival == nil, !service.isCancelledAtDestination else { return nil }
         return differing(service.expectedArrival, from: service.scheduledArrival)
     }
 

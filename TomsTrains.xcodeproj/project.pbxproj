@@ -28,7 +28,7 @@
 		435B649B28A613B603DA61BF /* Shared/Models/DepartureSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */; };
 		43895B37BA2280F2CE37653B /* TomsTrains/Style/AppAppearanceStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D9762842E48FA144670C14 /* TomsTrains/Style/AppAppearanceStyle.swift */; };
 		4A6589383EB04D3EAC011E2D /* Shared/Models/StationNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 679904ED7D8149BDB498AD01 /* Shared/Models/StationNotice.swift */; };
-		5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Settings/StationPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */; };
+		5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Stations/StationPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Stations/StationPicker.swift */; };
 		57397C7BFD1459A51304A450 /* Shared/Models/DepartureSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */; };
 		5FBB545EEAFEA09B5775D711 /* Shared/Time/RailDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54667E600F23DF285D579FD /* Shared/Time/RailDate.swift */; };
 		672EC4FE9FF1DC042036D6D3 /* Shared/Models/ServiceStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A70098C534710A593BD8C95 /* Shared/Models/ServiceStatus.swift */; };
@@ -63,6 +63,7 @@
 		B01800100000000000000001 /* Shared/Models/ServiceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */; };
 		B01800100000000000000002 /* Shared/Models/ServiceSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */; };
 		B01800100000000000000004 /* TomsTrains/Details/ServiceSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */; };
+		B02611230000000000020001 /* TomsTrains/Details/TrainDetailPolling.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611230000000000010001 /* TomsTrains/Details/TrainDetailPolling.swift */; };
 		B0C9F4CA49A798669495539F /* Shared/Services/NationalRailProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */; };
 		B260A5A0FCA8AF6ED2160125 /* TomsTrains/Settings/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C59E185C1151529469BA90 /* TomsTrains/Settings/SettingsView.swift */; };
 		B47B200FB914AACC643CE54D /* Shared/Services/Darwin/DarwinDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE13F837F5135F2260795689 /* Shared/Services/Darwin/DarwinDecoder.swift */; };
@@ -83,6 +84,20 @@
 		EF49780112448C41B18B607B /* Shared/Board/DepartureBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC14770D73524C2D79B6A70 /* Shared/Board/DepartureBoard.swift */; };
 		EFF8576DEDCB8E30755B733A /* Shared/Networking/DarwinResponseCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */; };
 		F411951B0C516882E88F001B /* Shared/Time/JourneyDirection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */; };
+		B02611000000000000020001 /* Shared/Services/LiveStationBoardProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010001 /* Shared/Services/LiveStationBoardProvider.swift */; };
+		B02611000000000000030001 /* Shared/Services/LiveStationBoardProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010001 /* Shared/Services/LiveStationBoardProvider.swift */; };
+		B02611000000000000020002 /* Shared/Services/TfLStatusProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010002 /* Shared/Services/TfLStatusProvider.swift */; };
+		B02611000000000000030002 /* Shared/Services/TfLStatusProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010002 /* Shared/Services/TfLStatusProvider.swift */; };
+		B02611000000000000020003 /* TomsTrains/Live/LiveStationBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010003 /* TomsTrains/Live/LiveStationBoardView.swift */; };
+		B02611000000000000020004 /* TomsTrains/TfL/TfLStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010004 /* TomsTrains/TfL/TfLStatusView.swift */; };
+		B02611000000000000020005 /* Shared/Services/JourneyPlanningProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010005 /* Shared/Services/JourneyPlanningProvider.swift */; };
+		B02611000000000000030005 /* Shared/Services/JourneyPlanningProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010005 /* Shared/Services/JourneyPlanningProvider.swift */; };
+		B02611000000000000020006 /* TomsTrains/Plan/JourneyPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010006 /* TomsTrains/Plan/JourneyPlannerView.swift */; };
+		B02611000000000000020007 /* TomsTrains/Plan/JourneyStationIDs.json in Resources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010007 /* TomsTrains/Plan/JourneyStationIDs.json */; };
+		B02611000000000000030008 /* TomsTrainsTests/JourneyPlanningTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611000000000000010008 /* TomsTrainsTests/JourneyPlanningTests.swift */; };
+		B02611160000000000020001 /* Shared/Tracking/DelayRepay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611160000000000010001 /* Shared/Tracking/DelayRepay.swift */; };
+		B02611160000000000030001 /* Shared/Tracking/DelayRepay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611160000000000010001 /* Shared/Tracking/DelayRepay.swift */; };
+		B02611160000000000020002 /* TomsTrains/Board/TrackedJourneyHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02611160000000000010002 /* TomsTrains/Board/TrackedJourneyHistoryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -124,6 +139,7 @@
 		AA1EDD4BC3113B1D1004AC64 /* Shared/Networking/DarwinResponseCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Networking/DarwinResponseCache.swift; sourceTree = SOURCE_ROOT; };
 		B01800100000000000000003 /* Shared/Models/ServiceSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/ServiceSummary.swift; sourceTree = SOURCE_ROOT; };
 		B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Details/ServiceSummaryView.swift; sourceTree = SOURCE_ROOT; };
+		B02611230000000000010001 /* TomsTrains/Details/TrainDetailPolling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Details/TrainDetailPolling.swift; sourceTree = SOURCE_ROOT; };
 		B3F83CDDC8C99C9DB0B6E65C /* Shared/Networking/RailHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Networking/RailHTTPClient.swift; sourceTree = SOURCE_ROOT; };
 		B5A4299FC78B250AF478E49A /* Shared/Board/EarlierDeparturePagination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Board/EarlierDeparturePagination.swift; sourceTree = SOURCE_ROOT; };
 		B8F7D30955BEF9F9895EEEE8 /* TomsTrainsTests/BoardFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/BoardFixtures.swift; sourceTree = SOURCE_ROOT; };
@@ -139,7 +155,17 @@
 		F783583F4B6F35D3AEC4AD77 /* TomsTrainsTests/RouteStopStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/RouteStopStatusTests.swift; sourceTree = SOURCE_ROOT; };
 		F8432C4D4B66E756773F8C77 /* Shared/Time/JourneyDirection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Time/JourneyDirection.swift; sourceTree = SOURCE_ROOT; };
 		FD5BCF0941E41B1CAD7C0BC7 /* Shared/Models/DepartureSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/DepartureSnapshot.swift; sourceTree = SOURCE_ROOT; };
-		FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Settings/StationPicker.swift; sourceTree = SOURCE_ROOT; };
+		FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Stations/StationPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Stations/StationPicker.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010001 /* Shared/Services/LiveStationBoardProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/LiveStationBoardProvider.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010002 /* Shared/Services/TfLStatusProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/TfLStatusProvider.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010003 /* TomsTrains/Live/LiveStationBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Live/LiveStationBoardView.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010004 /* TomsTrains/TfL/TfLStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/TfL/TfLStatusView.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010005 /* Shared/Services/JourneyPlanningProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Services/JourneyPlanningProvider.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010006 /* TomsTrains/Plan/JourneyPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Plan/JourneyPlannerView.swift; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010007 /* TomsTrains/Plan/JourneyStationIDs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TomsTrains/Plan/JourneyStationIDs.json; sourceTree = SOURCE_ROOT; };
+		B02611000000000000010008 /* TomsTrainsTests/JourneyPlanningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrainsTests/JourneyPlanningTests.swift; sourceTree = SOURCE_ROOT; };
+		B02611160000000000010001 /* Shared/Tracking/DelayRepay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Tracking/DelayRepay.swift; sourceTree = SOURCE_ROOT; };
+		B02611160000000000010002 /* TomsTrains/Board/TrackedJourneyHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomsTrains/Board/TrackedJourneyHistoryView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -151,6 +177,11 @@
 				C1D5D2478FDA9B5DFE032CF2 /* Settings */,
 				E0A6FE41C1E3E8C22317B304 /* Style */,
 				6876F4ECBA191E7A025E470B /* TomsTrains/TomsTrainsApp.swift */,
+				B02611000000000000010004 /* TomsTrains/TfL/TfLStatusView.swift */,
+				B02611000000000000010003 /* TomsTrains/Live/LiveStationBoardView.swift */,
+				FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Stations/StationPicker.swift */,
+				B02611000000000000010007 /* TomsTrains/Plan/JourneyStationIDs.json */,
+				B02611000000000000010006 /* TomsTrains/Plan/JourneyPlannerView.swift */,
 			);
 			name = TomsTrains;
 			sourceTree = "<group>";
@@ -208,6 +239,7 @@
 				48B16C5B0B198BB787EF7E60 /* TomsTrainsTests/NationalRailTests.swift */,
 				506BE3F8C6E456433C86CD11 /* TomsTrainsTests/RouteSettingsTests.swift */,
 				F783583F4B6F35D3AEC4AD77 /* TomsTrainsTests/RouteStopStatusTests.swift */,
+				B02611000000000000010008 /* TomsTrainsTests/JourneyPlanningTests.swift */,
 				2412F49E3033215D5D87DBCA /* TomsTrainsTests/StationDirectoryTests.swift */,
 			);
 			name = TomsTrainsTests;
@@ -219,6 +251,9 @@
 				34C9A2A5D1860334C913ADFE /* Darwin */,
 				F3277A37CF7AC3EB2FDE9F1D /* Shared/Services/DepartureProviding.swift */,
 				5EFCA97A91BAE69B6488AA35 /* Shared/Services/NationalRailProvider.swift */,
+				B02611000000000000010002 /* Shared/Services/TfLStatusProvider.swift */,
+				B02611000000000000010005 /* Shared/Services/JourneyPlanningProvider.swift */,
+				B02611000000000000010001 /* Shared/Services/LiveStationBoardProvider.swift */,
 				33D022DE28CB487CB7E81301 /* Shared/Services/NationalRailReference.swift */,
 				7350287E5720DFCD4E1D83E0 /* Shared/Services/StationDirectory.swift */,
 			);
@@ -238,6 +273,7 @@
 			children = (
 				4170635CB49289317322568C /* Shared/Tracking/TrackingStore.swift */,
 				4A4350008EF96726EE02EB6B /* Shared/Tracking/TrainTracker.swift */,
+				B02611160000000000010001 /* Shared/Tracking/DelayRepay.swift */,
 			);
 			name = Tracking;
 			sourceTree = "<group>";
@@ -272,6 +308,7 @@
 			children = (
 				C27148B27B36B3850C5C9FA3 /* TomsTrains/Details/DepartureDetailView.swift */,
 				B01800100000000000000005 /* TomsTrains/Details/ServiceSummaryView.swift */,
+				B02611230000000000010001 /* TomsTrains/Details/TrainDetailPolling.swift */,
 				806406AAA3AB6B7D3ADE757E /* TomsTrains/Details/JourneyStopRow.swift */,
 			);
 			name = Details;
@@ -293,7 +330,6 @@
 			children = (
 				E84D004B0AD0CC1BA02AB02B /* TomsTrains/Settings/AutoTrackingEditor.swift */,
 				05C59E185C1151529469BA90 /* TomsTrains/Settings/SettingsView.swift */,
-				FE7A2AB0BAC14D30A8C70948 /* TomsTrains/Settings/StationPicker.swift */,
 			);
 			name = Settings;
 			sourceTree = "<group>";
@@ -303,6 +339,7 @@
 			children = (
 				7777649A0C04C5331EF63409 /* TomsTrains/Board/DepartureBoardHeader.swift */,
 				00A5987C2678AB63BD6E9ED4 /* TomsTrains/Board/DepartureBoardView.swift */,
+				B02611160000000000010002 /* TomsTrains/Board/TrackedJourneyHistoryView.swift */,
 				79773220DE3C278F8F78076A /* TomsTrains/Board/DepartureLoadingViews.swift */,
 				67EC0EA9DED848849B62B957 /* TomsTrains/Board/StationNoticeViews.swift */,
 				923ECF3FD2427DF74401C37B /* TomsTrains/Board/DepartureRow.swift */,
@@ -407,6 +444,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2E03FC9C8D896B37E45626A1 /* TomsTrains/Assets.xcassets in Resources */,
+				B02611000000000000020007 /* TomsTrains/Plan/JourneyStationIDs.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,9 +485,14 @@
 				6992107F884BE1CF16E70359 /* TomsTrainsTests/AutoTrackingTests.swift in Sources */,
 				10A59BF3E74038B25E129249 /* TomsTrainsTests/DepartureTests.swift in Sources */,
 				C9D3A55F936F58D7C6DA3A83 /* TomsTrainsTests/DestinationHeadingTests.swift in Sources */,
+				B02611000000000000030001 /* Shared/Services/LiveStationBoardProvider.swift in Sources */,
+				B02611000000000000030002 /* Shared/Services/TfLStatusProvider.swift in Sources */,
+				B02611000000000000030005 /* Shared/Services/JourneyPlanningProvider.swift in Sources */,
 				8180471BADD30A7F25EFA4BF /* TomsTrainsTests/NationalRailTests.swift in Sources */,
 				8A391F5146EDDD3F113EBD26 /* TomsTrainsTests/RouteSettingsTests.swift in Sources */,
 				83FF56F3864E571E1F2C6C37 /* TomsTrainsTests/RouteStopStatusTests.swift in Sources */,
+				B02611000000000000030008 /* TomsTrainsTests/JourneyPlanningTests.swift in Sources */,
+				B02611160000000000030001 /* Shared/Tracking/DelayRepay.swift in Sources */,
 				E2A83772CC6896B6B6894D74 /* TomsTrainsTests/StationDirectoryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -485,19 +528,28 @@
 				CEC3CA79942BE759D916F91D /* Shared/Tracking/TrainTracker.swift in Sources */,
 				31783168486D8CBB7ECB48DE /* TomsTrains/Board/DepartureBoardHeader.swift in Sources */,
 				792809A1F755918DC7A6F919 /* TomsTrains/Board/DepartureBoardView.swift in Sources */,
+				B02611160000000000020001 /* Shared/Tracking/DelayRepay.swift in Sources */,
+				B02611160000000000020002 /* TomsTrains/Board/TrackedJourneyHistoryView.swift in Sources */,
 				CC453F82B4109948A87B5E92 /* TomsTrains/Board/DepartureLoadingViews.swift in Sources */,
 				6C39F77DF49E4FD780059FD8 /* TomsTrains/Board/StationNoticeViews.swift in Sources */,
 				B87BD8F0A4B9143A8ED3121E /* TomsTrains/Board/DepartureRow.swift in Sources */,
 				9BD0386EA9C4AD616DD08374 /* TomsTrains/Board/OperatorLogoArtwork.swift in Sources */,
 				A70B17E8BEBA300D81D87CA4 /* TomsTrains/Details/DepartureDetailView.swift in Sources */,
 				B01800100000000000000004 /* TomsTrains/Details/ServiceSummaryView.swift in Sources */,
+				B02611230000000000020001 /* TomsTrains/Details/TrainDetailPolling.swift in Sources */,
 				275FA1B9FF10B4B277DCFB59 /* TomsTrains/Details/JourneyStopRow.swift in Sources */,
 				7D38221A3856F03E62E3293D /* TomsTrains/Settings/AutoTrackingEditor.swift in Sources */,
 				B260A5A0FCA8AF6ED2160125 /* TomsTrains/Settings/SettingsView.swift in Sources */,
-				5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Settings/StationPicker.swift in Sources */,
+				5076C67E7ACDEBFEC9E39F15 /* TomsTrains/Stations/StationPicker.swift in Sources */,
 				43895B37BA2280F2CE37653B /* TomsTrains/Style/AppAppearanceStyle.swift in Sources */,
 				29B8E4F2ABA6E217EC220148 /* TomsTrains/Style/ServiceStatusStyle.swift in Sources */,
 				A08EAD7C23DE42179E1A6801 /* TomsTrains/Style/NationalRailAttribution.swift in Sources */,
+				B02611000000000000020001 /* Shared/Services/LiveStationBoardProvider.swift in Sources */,
+				B02611000000000000020002 /* Shared/Services/TfLStatusProvider.swift in Sources */,
+				B02611000000000000020003 /* TomsTrains/Live/LiveStationBoardView.swift in Sources */,
+				B02611000000000000020004 /* TomsTrains/TfL/TfLStatusView.swift in Sources */,
+				B02611000000000000020006 /* TomsTrains/Plan/JourneyPlannerView.swift in Sources */,
+				B02611000000000000020005 /* Shared/Services/JourneyPlanningProvider.swift in Sources */,
 				A024D1C55FDF823B6A583470 /* TomsTrains/TomsTrainsApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

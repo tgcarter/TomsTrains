@@ -1,7 +1,7 @@
 import Foundation
 
 enum RailAPIError: LocalizedError {
-    case missingKey, accessDenied, rateLimited, unavailable, invalidResponse
+    case missingKey, accessDenied, rateLimited, unavailable, invalidResponse, serviceNotFound
 
     var errorDescription: String? {
         switch self {
@@ -10,6 +10,7 @@ enum RailAPIError: LocalizedError {
         case .rateLimited: "National Rail’s request limit was reached. Please try again later."
         case .unavailable: "National Rail is temporarily unavailable. Pull down to try again."
         case .invalidResponse: "National Rail returned an unreadable departure board."
+        case .serviceNotFound: "National Rail no longer lists this service."
         }
     }
 }

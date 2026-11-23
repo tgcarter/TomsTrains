@@ -9,7 +9,7 @@ struct DepartureSnapshot: Codable, Sendable {
     var hasLaterDepartures: Bool? = nil
 
     func isFresh(at date: Date, settings: RouteSettings = RouteSettings()) -> Bool {
-        date.timeIntervalSince(fetchedAt) < 300 && date.timeIntervalSince(fetchedAt) >= -60
+        RailDate.isFreshReport(fetchedAt, at: date)
             && (routeKey ?? settings.selection(at: fetchedAt).key) == settings.selection(at: date).key
     }
 

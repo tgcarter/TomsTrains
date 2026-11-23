@@ -6,7 +6,7 @@ struct Departure: Identifiable, Equatable, Codable, Sendable {
     let destination: String
     let callingAt: [Station]
     let scheduled: Date
-    let status: ServiceStatus
+    var status: ServiceStatus
     var platform: String?
     let operatorName: String
     let journeyMinutes: Int?
@@ -114,16 +114,23 @@ struct Departure: Identifiable, Equatable, Codable, Sendable {
             return .onTime
         }
         if let arrivalStatus, !arrivalStatus.isEmpty {
+            if arrivalStatus == "Delayed" { return .delayedWithoutEstimate }
             return arrivalStatus == "On time" ? .onTime : .disrupted(arrivalStatus)
+        }
+        if status == .delayedWithoutEstimate { return status }
+        if case .delayed = status, let boarding = routeStops?.first(where: \.isBoarding),
+           boarding.actualDeparture == nil, boarding.expected != nil {
+            return .disrupted("Departure \(status.label)")
         }
         return .unknown
     }
 
-    var lastReportedStop: RouteStop? {
-        guard status != .cancelled, let observedAt else { return nil }
-        return routeStops?.filter { !$0.isCancelled && $0.actual.map { $0 <= observedAt } == true }
-            .max { $0.actual! < $1.actual! }
+    var routePosition: RoutePosition? {
+        guard let observedAt, let routeStops else { return nil }
+        return RoutePosition(stops: routeStops, observedAt: observedAt, hasEnded: status == .cancelled || isServiceComplete)
     }
+
+    var lastReportedStop: RouteStop? { routePosition?.last }
 
     var isServiceComplete: Bool {
         guard status != .cancelled, let observedAt,
@@ -132,38 +139,16 @@ struct Departure: Identifiable, Equatable, Codable, Sendable {
     }
 
     /// Position along the full service, independent of the selected destination.
-    var routeProgress: Double? {
-        guard let stops = routeStops, let last = lastReportedStop,
-              let index = stops.firstIndex(where: { $0.id == last.id }) else { return nil }
-        return Double(index) + (isBetweenStations ? 0.5 : 0)
-    }
-
-    var nextReportedStop: RouteStop? {
-        guard let routeStops, let last = lastReportedStop,
-              let index = routeStops.firstIndex(where: { $0.id == last.id }) else { return nil }
-        return routeStops.dropFirst(index + 1).first(where: {
-            !$0.isCancelled && ($0.actual == nil || $0.actual! > (observedAt ?? .distantPast))
-        })
-    }
-
-    var isBetweenStations: Bool {
-        guard let last = lastReportedStop, let departed = last.actualDeparture,
-              let observedAt, departed <= observedAt, nextReportedStop != nil else { return false }
-        return true
-    }
-
-    var arrivalLabel: String {
-        if status == .cancelled { return "Cancelled" }
-        if let expectedArrival { return RailTime.string(expectedArrival) }
-        return arrivalStatus ?? "Awaiting update"
-    }
+    var routeProgress: Double? { routePosition?.progress }
+    var nextReportedStop: RouteStop? { routePosition?.next }
+    var isBetweenStations: Bool { routePosition?.isBetweenStations == true }
 
     var expected: Date? {
         switch status {
         case .onTime: scheduled
         case .delayed(let minutes): scheduled.addingTimeInterval(Double(minutes * 60))
         case .early(let minutes): scheduled.addingTimeInterval(Double(-minutes * 60))
-        case .cancelled, .unknown, .disrupted: nil
+        case .cancelled, .unknown, .delayedWithoutEstimate, .disrupted: nil
         }
     }
 
@@ -180,7 +165,7 @@ struct Departure: Identifiable, Equatable, Codable, Sendable {
         // An unquantified delay remains on the board until a fresh response removes it.
         // The containing snapshot expires after five minutes.
         switch status {
-        case .unknown, .disrupted: return true
+        case .unknown, .delayedWithoutEstimate, .disrupted: return true
         default: return (expected ?? scheduled).addingTimeInterval(60) > date
         }
     }

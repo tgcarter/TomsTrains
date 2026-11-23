@@ -79,7 +79,7 @@ final class DepartureTests: XCTestCase {
         XCTAssertTrue(TrackedJourney(departure: train).hasArrived)
     }
 
-    func testTrackingEndsAfterReportedStopBeyondDestinationWithMissingArrival() throws {
+    func testLaterStopConfirmsArrivalWhileWaitingForDestinationTime() throws {
         var train = BoardFixtures.services(around: date("2026-09-22T07:00:00Z"))[0]
         train.observedAt = date("2026-09-22T09:00:00Z")
         train.actualArrival = nil
@@ -96,15 +96,21 @@ final class DepartureTests: XCTestCase {
         XCTAssertFalse(TrackedJourney(departure: train).hasArrived, "Future reports do not prove arrival")
         train.routeStops![2].actual = reported
         XCTAssertTrue(TrackedJourney(departure: train).hasArrived)
+        XCTAssertTrue(TrackedJourney(departure: train).needsLiveDetails)
+        XCTAssertNil(TrackedJourney(departure: train).reportedArrival)
+        XCTAssertNil(TrackedJourney(departure: train).reportedDepartureFromDestination)
         let saved = try JSONEncoder().encode(TrackedJourney(departure: train))
         XCTAssertTrue(try JSONDecoder().decode(TrackedJourney.self, from: saved).hasArrived,
-            "An already saved journey is removed on the next launch too")
+            "The arrival confirmation survives a restart")
         train.routeStops![2] = stop("after", actual: reported, cancelled: true)
         XCTAssertFalse(TrackedJourney(departure: train).hasArrived)
         train.routeStops![2] = stop("after")
         train.routeStops![2].actual = nil
         train.routeStops![2].actualDeparture = reported
         XCTAssertTrue(TrackedJourney(departure: train).hasArrived)
+        train.terminalActual = reported
+        XCTAssertFalse(TrackedJourney(departure: train).needsLiveDetails)
+        XCTAssertNil(TrackedJourney(departure: train).reportedArrival)
         train.routeStops![1] = stop("destination", destination: true, cancelled: true)
         XCTAssertFalse(TrackedJourney(departure: train).hasArrived, "A skipped destination was not reached")
     }

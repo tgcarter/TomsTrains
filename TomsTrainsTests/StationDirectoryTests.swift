@@ -4,6 +4,35 @@ import XCTest
 #endif
 
 final class StationDirectoryTests: XCTestCase {
+    func testLiveStationSearchRestoresBoardAndKeepsRecentStationsAfterClear() {
+        let suite = "live-board-search-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+
+        var cambridge = Station(rawValue: "CBG")!
+        cambridge.displayName = "Cambridge"
+        var searches = LiveBoardSearches()
+        searches.select(cambridge)
+        searches.select(.stPancras)
+        searches.select(cambridge)
+        searches.mode = .arrivals
+        searches.filterStation = .stNeots
+        searches.save(to: defaults)
+
+        var restored = LiveBoardSearches.load(from: defaults)
+        XCTAssertEqual(restored.station?.name, "Cambridge")
+        XCTAssertEqual(restored.mode, .arrivals)
+        XCTAssertEqual(restored.filterStation, .stNeots)
+        XCTAssertEqual(restored.recentStations.map(\.rawValue), ["CBG", "STP"])
+
+        restored.clearSelection()
+        restored.save(to: defaults)
+        let cleared = LiveBoardSearches.load(from: defaults)
+        XCTAssertNil(cleared.station)
+        XCTAssertNil(cleared.filterStation)
+        XCTAssertEqual(cleared.recentStations.map(\.rawValue), ["CBG", "STP"])
+    }
+
     func testAuthenticatedNationalRailRequestAndDecode() async throws {
         let directory = StationDirectory(apiKey: "stations-test-key", transport: { request in
             XCTAssertEqual(request.url, StationDirectory.endpoint)

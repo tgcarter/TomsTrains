@@ -30,6 +30,255 @@ final class NationalRailTests: XCTestCase {
         try XCTUnwrap(DarwinDecoder.decode(data, origin: .stPancras, destination: .stNeots, now: now).departures.first)
     }
 
+    func testLivePageResetDiscardsLoadedPagesAndIgnoresInFlightResponses() throws {
+        let board = try LiveStationBoardProvider.decode(Self.board(), station: .stPancras, mode: .departures,
+            now: now, includeRecent: true)
+        var pages = LiveBoardPages()
+        let earlier = try XCTUnwrap(pages.begin(.earlier))
+        pages.finish(.earlier, id: earlier, with: .loaded(board))
+        let pendingLater = try XCTUnwrap(pages.begin(.later))
+        XCTAssertNotNil(pages[.earlier]?.board)
+        XCTAssertTrue(pages[.later]?.isLoading == true)
+
+        pages = LiveBoardPages()
+        XCTAssertNil(pages[.earlier])
+        XCTAssertNil(pages[.later])
+        pages.finish(.later, id: pendingLater, with: .loaded(board))
+        XCTAssertNil(pages[.later])
+
+        let newLater = try XCTUnwrap(pages.begin(.later))
+        pages.finish(.later, id: pendingLater, with: .failed)
+        XCTAssertTrue(pages[.later]?.isLoading == true)
+        pages.finish(.later, id: newLater, with: .loaded(board))
+        XCTAssertEqual(pages[.later]?.board?.trains.map(\.id), board.trains.map(\.id))
+    }
+
+    func testLiveBoardAndExpandedPagesExpireFiveMinutesAfterTheFeedReport() throws {
+        let first = try LiveStationBoardProvider.decode(Self.board(), station: .stPancras, mode: .departures, now: now)
+        let later = now.addingTimeInterval(120)
+        let second = try LiveStationBoardProvider.decode(Self.board(boardChanges: ["generatedAt": "2026-09-22T15:52:00+01:00"]),
+            station: .stPancras, mode: .departures, now: later)
+        let cutoff = now.addingTimeInterval(300)
+        XCTAssertTrue(first.isFresh(at: cutoff.addingTimeInterval(-1)))
+        XCTAssertFalse(first.isFresh(at: cutoff))
+        XCTAssertTrue(second.isFresh(at: cutoff))
+
+        let combined = first.combining([second])
+        XCTAssertEqual(combined.updatedAt, later)
+        XCTAssertEqual(combined.expiresAt, cutoff)
+        XCTAssertFalse(combined.isFresh(at: cutoff))
+
+        var pages = LiveBoardPages()
+        let earlier = try XCTUnwrap(pages.begin(.earlier))
+        pages.finish(.earlier, id: earlier, with: .loaded(first))
+        let laterPage = try XCTUnwrap(pages.begin(.later))
+        pages.finish(.later, id: laterPage, with: .loaded(second))
+        pages.expire(at: cutoff)
+        XCTAssertNil(pages[.earlier])
+        XCTAssertNotNil(pages[.later]?.board)
+        XCTAssertNotNil(pages.begin(.earlier), "An expired window can be loaded again")
+    }
+
+    func testLiveDeparturesUseBoardingForecastAndKeepAllDestinations() async throws {
+        let payload = Self.board(serviceChanges: [
+            "std": "2026-09-22T15:55:00", "etd": "2026-09-22T15:58:00", "departureType": "Forecast",
+            "destination": [["locationName": "Ely"], ["locationName": "Peterborough"]]
+        ], boardChanges: ["platformsAreHidden": true])
+        let provider = LiveStationBoardProvider(departuresKey: "staff", arrivalsKey: "public", transport: { request in
+            XCTAssertTrue(request.url!.path.contains("/GetDepBoardWithDetails/STP/"))
+            XCTAssertFalse(request.url!.absoluteString.contains("filterCrs"))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "x-apikey"), "staff")
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let board = try await provider.board(for: .stPancras, mode: .departures, at: now)
+        let train = try XCTUnwrap(board.trains.first)
+        XCTAssertEqual(train.headline, "To Ely / Peterborough")
+        XCTAssertEqual(train.status, .delayed(minutes: 3))
+        XCTAssertNil(train.platform)
+        XCTAssertEqual(train.stops.first(where: \.isBoarding)?.crs, "STP")
+        XCTAssertTrue(train.stops.contains { $0.crs == "SNO" })
+    }
+
+    func testLiveArrivalsIgnoreDepartureOnlyRowsAndHandleMidnightCallingPoints() async throws {
+        let payload = Data("""
+        {"crs":"STP","generatedAt":"2026-09-22T23:50:00+01:00","platformAvailable":true,"trainServices":[
+          {"serviceID":"departure","std":"00:02","etd":"On time","destination":[{"locationName":"Ely"}]},
+          {"serviceID":"arrival","sta":"00:08","eta":"00:13","platform":"C","origin":[{"locationName":"Brighton"}],
+           "delayReason":"<p>Delayed by a signalling fault.</p>",
+           "previousCallingPoints":[{"callingPoint":[{"crs":"BHM","locationName":"Brighton","st":"23:04","at":"23:06"},
+            {"crs":"LBG","locationName":"London Bridge","st":"23:59","et":"00:05"}]}],
+           "subsequentCallingPoints":[{"callingPoint":[{"crs":"SNO","locationName":"St Neots","st":"00:53","et":"Delayed"}]}]},
+          {"serviceID":"cancelled","sta":"00:15","eta":"Cancelled","origin":[{"locationName":"Three Bridges"}]}
+        ]}
+        """.utf8)
+        let provider = LiveStationBoardProvider(departuresKey: "staff", arrivalsKey: "public", transport: { request in
+            XCTAssertTrue(request.url!.path.hasSuffix("/GetArrDepBoardWithDetails/STP"))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "x-apikey"), "public")
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let board = try await provider.board(for: .stPancras, mode: .arrivals, at: date("2026-09-22T22:50:00Z"))
+        XCTAssertEqual(board.trains.map(\.id), ["arrival", "cancelled"])
+        let train = try XCTUnwrap(board.trains.first)
+        XCTAssertEqual(train.headline, "From Brighton")
+        XCTAssertEqual(train.expected, date("2026-09-22T23:13:00Z"))
+        XCTAssertEqual(train.status, .delayed(minutes: 5))
+        XCTAssertEqual(train.reason, "Delayed by a signalling fault.")
+        XCTAssertEqual(train.stops.map(\.crs), ["BHM", "LBG", "STP", "SNO"])
+        XCTAssertEqual(train.stops[1].expected, date("2026-09-22T23:05:00Z"))
+        XCTAssertEqual(train.stops[2].scheduled, date("2026-09-22T23:08:00Z"))
+        XCTAssertEqual(train.stops[3].timingStatus, .delayedWithoutEstimate)
+        XCTAssertEqual(board.trains.last?.status, .cancelled)
+    }
+
+    func testEarlierLiveDeparturesRetainReportedDeparturesTheCurrentBoardSuppresses() async throws {
+        let payload = Self.board(serviceChanges: ["serviceIsSupressed": true, "platformIsHidden": true])
+        let provider = LiveStationBoardProvider(departuresKey: "staff", transport: { request in
+            XCTAssertTrue(request.url!.path.hasSuffix("/STP/20260922T135000"))
+            XCTAssertTrue(request.url!.absoluteString.contains("timeWindow=120"))
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let earlier = try await provider.board(for: .stPancras, mode: .departures, window: .earlier, at: now)
+        let current = try LiveStationBoardProvider.decode(payload, station: .stPancras, mode: .departures, now: now)
+        let train = try XCTUnwrap(earlier.trains.first)
+        XCTAssertEqual(train.actual, date("2026-09-22T14:49:00"))
+        XCTAssertEqual(train.platform, "B")
+        XCTAssertEqual(train.statusLabel(for: .departures), "Departed · 3 min late")
+        XCTAssertTrue(current.trains.isEmpty)
+    }
+
+    func testEarlierAndLaterLiveArrivalsUseSupportedWindowsAndKeepActualReports() async throws {
+        let payload = Data("""
+        {"crs":"STP","generatedAt":"2026-09-22T15:50:00+01:00","trainServices":[
+          {"serviceID":"earlier","sta":"15:21","ata":"15:25","origin":[{"crs":"LBG","locationName":"London Bridge"}]},
+          {"serviceID":"later","sta":"17:02","eta":"On time","origin":[{"crs":"LBG","locationName":"London Bridge"}]}
+        ]}
+        """.utf8)
+        let provider = LiveStationBoardProvider(arrivalsKey: "public", transport: { request in
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems ?? []
+            let arguments = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value ?? "") })
+            XCTAssertTrue(["-120", "60"].contains(arguments["timeOffset"] ?? ""))
+            XCTAssertEqual(arguments["timeWindow"], "120")
+            XCTAssertEqual(arguments["filterCrs"], "LBG")
+            XCTAssertEqual(arguments["filterType"], "from")
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let londonBridge = Station(rawValue: "LBG")!
+        let earlier = try await provider.board(for: .stPancras, mode: .arrivals, filter: londonBridge, window: .earlier, at: now)
+        let later = try await provider.board(for: .stPancras, mode: .arrivals, filter: londonBridge, window: .later, at: now)
+        let arrived = try XCTUnwrap(earlier.trains.first)
+        XCTAssertEqual(arrived.statusLabel(for: .arrivals), "Arrived · 4 min late")
+        XCTAssertEqual(later.trains.map(\.id), ["later"])
+        var newerWithoutActual = arrived
+        newerWithoutActual.actual = nil
+        newerWithoutActual.observedAt = now.addingTimeInterval(30)
+        let merged = LiveStationTrain.ordered([newerWithoutActual] + later.trains + earlier.trains)
+        XCTAssertEqual(merged.map(\.id), ["earlier", "later"])
+        XCTAssertEqual(merged.first?.actual, arrived.actual)
+    }
+
+    func testLiveArrivalsSplitAFullBoardToIncludeTheMostRecentRows() async throws {
+        let provider = LiveStationBoardProvider(arrivalsKey: "public", transport: { request in
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems ?? []
+            let arguments = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value ?? "") })
+            let services: [[String: String]]
+            if arguments["timeWindow"] == "120" {
+                services = (0..<25).map { ["serviceID": "capped-\($0)", "sta": "14:15"] }
+            } else {
+                XCTAssertEqual(arguments["timeWindow"], "60")
+                services = arguments["timeOffset"] == "-120"
+                    ? [["serviceID": "older", "sta": "14:15"]]
+                    : [["serviceID": "recent", "sta": "15:45"]]
+            }
+            let data = try JSONSerialization.data(withJSONObject: [
+                "crs": "STP", "generatedAt": "2026-09-22T15:50:00+01:00", "trainServices": services
+            ])
+            return (data, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let board = try await provider.board(for: .stPancras, mode: .arrivals, window: .earlier, at: now)
+        XCTAssertEqual(board.trains.map(\.id), ["older", "recent"])
+    }
+
+    func testTfLListsDisruptedLinesFirstAndKeepsGoodServiceLines() throws {
+        let payload = Data("""
+        [
+          {"id":"bakerloo","name":"Bakerloo","modeName":"tube","lineStatuses":[
+            {"statusSeverity":10,"statusSeverityDescription":"Good Service"}]},
+          {"id":"dlr","name":"DLR","modeName":"dlr","lineStatuses":[
+            {"statusSeverity":10,"statusSeverityDescription":"Good Service"},
+            {"statusSeverity":6,"statusSeverityDescription":"Severe Delays","reason":"Signalling fault"}]},
+          {"id":"weaver","name":"Weaver","modeName":"overground","lineStatuses":[
+            {"statusSeverity":10,"statusSeverityDescription":"Good Service"}]}
+        ]
+        """.utf8)
+        let lines = try TfLStatusProvider.decode(payload)
+        XCTAssertEqual(lines.map(\.id), ["dlr", "bakerloo", "weaver"])
+        XCTAssertEqual(lines.first?.orderedStatuses.first?.statusSeverityDescription, "Severe Delays")
+        XCTAssertEqual(lines.first?.reasons, ["Signalling fault"])
+        XCTAssertFalse(lines.last!.isDisrupted)
+    }
+
+    func testLiveDeparturesFilterOnlyCallsAfterBoarding() async throws {
+        let payload = Self.board(serviceChanges: [
+            "std": "2026-09-22T15:55:00", "etd": "2026-09-22T15:55:00", "departureType": "Forecast"
+        ])
+        let stationBefore = Station(rawValue: "LBG")!
+        let provider = LiveStationBoardProvider(departuresKey: "staff", transport: { request in
+            let arguments = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems ?? []
+            XCTAssertEqual(arguments.first(where: { $0.name == "filterType" })?.value, "to")
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let onward = try await provider.board(for: .stPancras, mode: .departures, filter: .stNeots, at: now)
+        let before = try await provider.board(for: .stPancras, mode: .departures, filter: stationBefore, at: now)
+        XCTAssertEqual(onward.trains.count, 1)
+        XCTAssertTrue(before.trains.isEmpty)
+    }
+
+    func testLiveArrivalsFilterEarlierCallsAndExcludeSkippedCalls() async throws {
+        let payload = Data("""
+        {"crs":"STP","generatedAt":"2026-09-22T15:50:00+01:00","trainServices":[
+          {"serviceID":"earlier","sta":"15:55","previousCallingPoints":[{"callingPoint":[
+           {"crs":"LBG","locationName":"London Bridge","st":"15:44","at":"15:44"}]}]},
+          {"serviceID":"onward","sta":"15:56","subsequentCallingPoints":[{"callingPoint":[
+           {"crs":"LBG","locationName":"London Bridge","st":"16:12"}]}]},
+          {"serviceID":"skipped","sta":"15:57","previousCallingPoints":[{"callingPoint":[
+           {"crs":"LBG","locationName":"London Bridge","st":"15:45","isCancelled":true}]}]}
+        ]}
+        """.utf8)
+        let provider = LiveStationBoardProvider(arrivalsKey: "public", transport: { request in
+            let arguments = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems ?? []
+            XCTAssertEqual(arguments.first(where: { $0.name == "filterType" })?.value, "from")
+            XCTAssertEqual(arguments.first(where: { $0.name == "filterCrs" })?.value, "LBG")
+            return (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let board = try await provider.board(for: .stPancras, mode: .arrivals, filter: Station(rawValue: "LBG"), at: now)
+        XCTAssertEqual(board.trains.map(\.id), ["earlier"])
+        XCTAssertEqual(board.trains.first?.position?.label, "Between London Bridge and St Pancras International")
+    }
+
+    func testLiveDepartureDetailsUseTheSameRIDAfterItLeavesTheBoard() async throws {
+        let boardData = Self.board(serviceChanges: [
+            "std": "2026-09-22T15:55:00", "etd": "2026-09-22T15:55:00", "departureType": "Forecast"
+        ], destinationChanges: ["arrivalType": "Forecast", "departureType": "Forecast"])
+        let board = try LiveStationBoardProvider.decode(boardData, station: .stPancras, mode: .departures, now: now)
+        let train = try XCTUnwrap(board.trains.first)
+        let response = Data("""
+        {"rid":"202609220001","generatedAt":"2026-09-22T16:03:00+01:00","locations":[
+          {"crs":"STP","locationName":"St Pancras International","std":"2026-09-22T15:55:00","atd":"2026-09-22T15:56:00","departureType":"Actual"},
+          {"crs":"SNO","locationName":"St Neots","sta":"2026-09-22T16:32:00","eta":"2026-09-22T16:33:00","arrivalType":"Forecast"}
+        ]}
+        """.utf8)
+        let provider = LiveStationBoardProvider(detailsKey: "details", transport: { request in
+            XCTAssertTrue(request.url!.path.hasSuffix("/GetServiceDetailsByRID/202609220001"))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "x-apikey"), "details")
+            return (response, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let updated = try await provider.details(for: train, at: .stPancras, filter: .stNeots, now: date("2026-09-22T15:03:00Z"))
+        XCTAssertEqual(updated.id, train.id)
+        XCTAssertEqual(updated.actual, date("2026-09-22T14:56:00Z"))
+        XCTAssertEqual(updated.position?.label, "Between St Pancras International and St Neots")
+        XCTAssertEqual(updated.position?.progress, 0.5)
+    }
+
     func testBoardDoesNotMistakePreviousLocationForServiceOrigin() throws {
         let partial = try decode(Self.board())
         XCTAssertNil(partial.serviceOrigin)
@@ -97,6 +346,20 @@ final class NationalRailTests: XCTestCase {
             XCTAssertNil(train.routeStops?.first(where: \.isDestination)?.actualDeparture)
             XCTAssertFalse(TrackedJourney(departure: train).hasArrived)
         }
+    }
+
+    func testUnquantifiedDelayIsShownWithoutInventingAnETA() throws {
+        let atBoarding = try decode(Self.board(serviceChanges: ["departureType": "Delayed"],
+            destinationChanges: ["arrivalType": "NoLog", "departureType": "NoLog"]))
+        XCTAssertEqual(atBoarding.status, .delayedWithoutEstimate)
+        XCTAssertEqual(ServiceSummary(service: atBoarding, isTracked: true).status, .delayedWithoutEstimate)
+        XCTAssertNil(atBoarding.expectedArrival)
+        XCTAssertEqual(atBoarding.routeStops?.first(where: \.isBoarding)?.timingLabel, "Delayed · no estimate")
+
+        let atDestination = try decode(Self.board(destinationChanges: ["arrivalType": "Delayed", "departureType": "NoLog"]))
+        XCTAssertEqual(atDestination.journeyStatus, .delayedWithoutEstimate)
+        XCTAssertEqual(atDestination.routeStops?.first(where: \.isDestination)?.timingLabel, "Delayed · no estimate")
+        XCTAssertNil(atDestination.expectedArrival)
     }
 
     func testFutureActualReportDoesNotConfirmArrival() throws {
@@ -170,6 +433,33 @@ final class NationalRailTests: XCTestCase {
         train.terminalActual = now.addingTimeInterval(60)
         XCTAssertFalse(train.isServiceComplete)
         XCTAssertEqual(train.routeProgress, Double(destination) + 0.5, "Future reports must not advance the graphic")
+    }
+
+    func testCancelledServiceKeepsProgressAtTheLastConfirmedStop() throws {
+        let data = Self.board()
+        var commuteTrain = try decode(data)
+        let board = try LiveStationBoardProvider.decode(data, station: .stPancras, mode: .departures, now: now,
+            includeRecent: true)
+        var liveTrain = try XCTUnwrap(board.trains.first)
+        let last = try XCTUnwrap(commuteTrain.routeStops?.firstIndex(where: \.isDestination))
+        XCTAssertTrue(commuteTrain.isBetweenStations)
+        XCTAssertTrue(liveTrain.position?.isBetweenStations == true)
+
+        commuteTrain.status = .cancelled
+        liveTrain.status = .cancelled
+        for position in [commuteTrain.routePosition, liveTrain.position] {
+            let position = try XCTUnwrap(position)
+            XCTAssertEqual(position.last.crs, "SNO")
+            XCTAssertEqual(position.progress, Double(last))
+            XCTAssertNil(position.next)
+            XCTAssertFalse(position.isBetweenStations)
+        }
+
+        let cancelled = DarwinDecoder.withdrawnDeparture(commuteTrain, service: [:], observed: now, rid: "202609220001")
+        XCTAssertEqual(cancelled.routePosition?.progress, Double(last))
+        XCTAssertTrue(cancelled.routeStops?.last?.isCancelled == true)
+        liveTrain.stops.removeAll { $0.actual != nil }
+        XCTAssertNil(liveTrain.position, "A cancellation without a movement report has no confirmed train position")
     }
 
     func testLondonTimesIncludeDateAndRespectSummerWinterAndMidnight() {
@@ -264,6 +554,101 @@ final class NationalRailTests: XCTestCase {
         XCTAssertThrowsError(try DarwinDecoder.decode(Self.board(boardChanges: ["servicesAreUnavailable": true]), origin: .stPancras, destination: .stNeots, now: now))
         XCTAssertThrowsError(try DarwinDecoder.decode(Self.board(origin: "KGX"), origin: .stPancras, destination: .stNeots, now: now))
         XCTAssertThrowsError(try DarwinDecoder.decode(Data("null".utf8), origin: .stPancras, destination: .stNeots, now: now))
+    }
+
+    func testDeletedDetailsAreCancelledEvenWithoutLocations() async throws {
+        let train = try decode(Self.board())
+        let payload = Data(#"{"rid":"202609220001","generatedAt":"2026-09-22T14:55:00Z","isDeleted":true,"cancelReason":"Train withdrawn."}"#.utf8)
+        let provider = NationalRailProvider(detailsKey: "key", transport: { request in
+            (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let result = try await provider.serviceDetails(for: train)
+        XCTAssertEqual(result.id, train.id)
+        XCTAssertEqual(result.journeyStatus, .cancelled)
+        XCTAssertEqual(result.disruptionReason, "Train withdrawn.")
+        XCTAssertNil(result.expectedArrival)
+    }
+
+    func testDetailsHandleSuppressedCancelledBoardingCall() async throws {
+        let train = try decode(Self.board())
+        let details = try Self.details(from: Self.board(serviceChanges: ["serviceIsSupressed": true, "isCancelled": true],
+            destinationChanges: ["arrivalType": "NoLog", "departureType": "NoLog"]))
+        var object = try DarwinDecoder.object(details)
+        object["isCancelled"] = nil // The full-service response cancels only the boarding call.
+        let payload = try JSONSerialization.data(withJSONObject: object)
+        let provider = NationalRailProvider(detailsKey: "key", transport: { request in
+            (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let result = try await provider.serviceDetails(for: train)
+        XCTAssertEqual(result.journeyStatus, .cancelled)
+        XCTAssertEqual(result.routeStops?.first(where: \.isBoarding)?.isCancelled, true)
+    }
+
+    func testMissingDetailsAndFreshBoardOmissionCancelATrainStillDueToDepart() async throws {
+        let train = try pendingTrain()
+        let provider = fallbackProvider(board: Self.board(boardChanges: ["trainServices": []]), now: now)
+        let result = try await provider.serviceDetails(for: train)
+        XCTAssertEqual(result.id, train.id)
+        XCTAssertEqual(result.journeyStatus, .cancelled)
+        XCTAssertTrue(result.routeStops?.first(where: \.isDestination)?.isCancelled == true)
+        XCTAssertNotNil(result.disruptionReason)
+    }
+
+    func testMissingDetailsStillUseLiveBoardReportForSameTrain() async throws {
+        let train = try pendingTrain()
+        let board = Self.board(serviceChanges: ["std": "2026-09-22T15:55:00", "departureType": "Delayed"],
+            destinationChanges: ["arrivalType": "Delayed", "departureType": "NoLog"])
+        let result = try await fallbackProvider(board: board, now: now)
+            .serviceDetails(for: train)
+        XCTAssertEqual(result.journeyStatus, .delayedWithoutEstimate)
+    }
+
+    func testAbsenceDoesNotCancelAfterDepartureOrFromAnUnreliableBoard() async throws {
+        let train = try pendingTrain()
+        let full = Self.board(boardChanges: ["trainServices": []])
+        let suppressed = Self.board(serviceChanges: ["std": "2026-09-22T15:55:00",
+            "departureType": "Delayed", "serviceIsSupressed": true])
+        let truncated = Self.board(boardChanges: ["trainServices": [], "isTruncated": true])
+        let unavailable = Self.board(boardChanges: ["trainServices": [], "servicesAreUnavailable": true])
+        let stale = Self.board(boardChanges: ["trainServices": [], "generatedAt": "2026-09-22T15:40:00+01:00"])
+        for (board, time) in [(full, now.addingTimeInterval(360)), (suppressed, now),
+                              (truncated, now), (unavailable, now), (stale, now)] {
+            do {
+                _ = try await fallbackProvider(board: board, now: time).serviceDetails(for: train)
+                XCTFail("An unverified absence must leave the last report intact")
+            } catch {}
+        }
+    }
+
+    func testDetailsOutageDoesNotTriggerCancellationFallback() async throws {
+        let train = try pendingTrain()
+        let provider = NationalRailProvider(detailsKey: "key", transport: { request in
+            XCTAssertTrue(request.url!.path.contains("GetServiceDetailsByRID"))
+            return (Data(), HTTPURLResponse(url: request.url!, statusCode: 503, httpVersion: nil, headerFields: nil)!)
+        })
+        do {
+            _ = try await provider.serviceDetails(for: train)
+            XCTFail("A feed outage must leave the last report intact")
+        } catch RailAPIError.unavailable {}
+    }
+
+    private func pendingTrain() throws -> Departure {
+        try decode(Self.board(serviceChanges: ["std": "2026-09-22T15:55:00",
+            "etd": "2026-09-22T15:55:00", "departureType": "Forecast"],
+            destinationChanges: ["arrivalType": "Forecast", "departureType": "Forecast"],
+            boardChanges: ["generatedAt": "2026-09-22T15:49:00+01:00"]))
+    }
+
+    private func fallbackProvider(board: Data, now: Date) -> NationalRailProvider {
+        NationalRailProvider(apiKey: "board", detailsKey: "details", transport: { request in
+            let isDetails = request.url!.path.contains("GetServiceDetailsByRID")
+            if !isDetails {
+                XCTAssertFalse(request.url!.absoluteString.contains("filterCrs"))
+                XCTAssertTrue(request.url!.path.contains("STP/20260922T155400"))
+            }
+            return (isDetails ? Data("null".utf8) : board,
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        }, clock: { now })
     }
 
     func testHTTPFailuresPropagateWithoutInventingDepartures() async {
@@ -658,6 +1043,40 @@ final class NationalRailTests: XCTestCase {
         XCTAssertEqual(refreshed.routeStops?.first?.actualDeparture, original.routeStops?.first?.actualDeparture)
     }
 
+    func testLiveDepartureDetailsResolveReasonCodesAndRetainReasonsThroughRefresh() async throws {
+        let board = Self.board(serviceChanges: ["delayReason": ["Value": 832]])
+        let details = try Self.details(from: Self.board(serviceChanges: ["delayReason": ["Value": 833]]))
+        let reference = NationalRailReference(apiKey: "reference-test", transport: { request in
+            XCTAssertEqual(request.url?.lastPathComponent, "GetReasonCodeList")
+            let data = Data("""
+                [{"code":832,"lateReason":"A signalling fault"},
+                 {"code":833,"lateReason":"<p>A train fault</p>","cancReason":"Cancelled due to a train fault"}]
+                """.utf8)
+            return (data, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        })
+        let provider = LiveStationBoardProvider(departuresKey: "staff", detailsKey: "details", transport: { request in
+            let data = request.url!.path.contains("GetServiceDetailsByRID") ? details : board
+            return (data, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        }, reference: reference)
+        let liveBoard = try await provider.board(for: .stPancras, mode: .departures, window: .earlier, at: now)
+        let train = try XCTUnwrap(liveBoard.trains.first)
+        XCTAssertEqual(train.reason, "A signalling fault")
+        let refreshed = try await provider.details(for: train, at: .stPancras, filter: nil, now: now)
+        XCTAssertEqual(refreshed.reason, "A train fault")
+
+        let withoutReason = try Self.details(from: Self.board(boardChanges: ["generatedAt": "2026-09-22T15:51:00+01:00"]))
+        let sparse = try LiveStationBoardProvider.decodeDetails(withoutReason, for: refreshed, at: .stPancras, now: now)
+        XCTAssertEqual(sparse.reason, "A train fault")
+
+        let cancelled = try Self.details(from: Self.board(serviceChanges: ["isCancelled": true, "cancelReason": ["Value": 833]]))
+        let cancellationProvider = LiveStationBoardProvider(detailsKey: "details", transport: { request in
+            (cancelled, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        }, reference: reference)
+        let cancelledTrain = try await cancellationProvider.details(for: refreshed, at: .stPancras, filter: nil, now: now)
+        XCTAssertEqual(cancelledTrain.status, .cancelled)
+        XCTAssertEqual(cancelledTrain.reason, "Cancelled due to a train fault")
+    }
+
     func testDelayReasonsPreserveOfficialCodesWithoutInventingDescriptions() throws {
         let coded = try decode(Self.board(serviceChanges: ["delayReason": ["Value": 832, "tiploc": "STPANCI", "near": true]]))
         XCTAssertEqual(coded.delayReasonCode, 832)
@@ -699,6 +1118,18 @@ final class NationalRailTests: XCTestCase {
         XCTAssertNil(updated.disruptionReason)
         XCTAssertEqual(updated.platform, original.platform)
         XCTAssertEqual(updated.routeStops?.count, original.routeStops?.count)
+
+        let liveBoard = try LiveStationBoardProvider.decode(Self.board(), station: .stPancras, mode: .departures,
+            now: now, includeRecent: true)
+        let liveTrain = try XCTUnwrap(liveBoard.trains.first)
+        let liveProvider = LiveStationBoardProvider(detailsKey: "details-test", transport: { request in
+            (payload, HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!)
+        }, reference: reference)
+        let liveUpdate = try await liveProvider.details(for: liveTrain, at: .stPancras, filter: nil, now: now)
+        XCTAssertEqual(liveUpdate.reasonCode, 832)
+        XCTAssertNil(liveUpdate.reason)
+        XCTAssertEqual(liveUpdate.actual, liveTrain.actual)
+        XCTAssertEqual(liveUpdate.platform, liveTrain.platform)
     }
 
     func testReferenceStationListContainsNamesAndCRSCodes() throws {

@@ -4,32 +4,69 @@ struct TrackedJourney: Codable, Identifiable, Equatable, Sendable {
     var departure: Departure
     var id: String { departure.id }
 
-    var hasArrived: Bool {
-        guard let observed = departure.observedAt, departure.status != .cancelled,
-              departure.arrivalStatus != "Cancelled" else { return false }
+    var hasArrived: Bool { arrivalReport != nil }
+
+    var reportedArrival: Date? {
+        guard let observed = departure.observedAt, !departure.isCancelledAtDestination else { return nil }
+        if let actual = departure.actualArrival, actual <= observed { return actual }
+        // RouteStop.actual holds the arrival when there is no actual departure.
+        guard let stop = departure.routeStops?.first(where: \.isDestination), stop.actualDeparture == nil,
+              let actual = stop.actual, actual >= departure.scheduled, actual <= observed else { return nil }
+        return actual
+    }
+
+    var reportedDepartureFromDestination: Date? {
+        guard let observed = departure.observedAt, !departure.isCancelledAtDestination,
+              let actual = departure.routeStops?.first(where: \.isDestination)?.actualDeparture,
+              actual >= departure.scheduled, actual <= observed else { return nil }
+        return actual
+    }
+
+    private var arrivalReport: Date? {
+        guard let observed = departure.observedAt, !departure.isCancelledAtDestination else { return nil }
+        if let reportedArrival { return reportedArrival }
         let stops = departure.routeStops ?? []
-        let destinationIndex = stops.firstIndex(where: \.isDestination)
-        if let destinationIndex, stops[destinationIndex].isCancelled { return false }
-        if let actual = departure.actualArrival, actual <= observed { return true }
-        guard let destinationIndex else { return false }
+        guard let destinationIndex = stops.firstIndex(where: \.isDestination) else { return nil }
         // An actual report at or beyond the selected destination proves the
         // journey has reached it, even when that station's own report is absent.
         // Estimates and cancelled calls must never count as arrival evidence.
-        return stops[destinationIndex...].contains { stop in
-            !stop.isCancelled && [stop.actual, stop.actualDeparture].compactMap { $0 }.contains {
-                $0 >= departure.scheduled && $0 <= observed
-            }
-        }
+        return stops[destinationIndex...].filter { !$0.isCancelled }
+            .flatMap { [$0.actual, $0.actualDeparture].compactMap { $0 } }
+            .filter { $0 >= departure.scheduled && $0 <= observed }.min()
     }
 
-    /// Completion ends tracking even if the selected call was cancelled.
+    /// Completed journeys stay on the board until the travel-day reset.
     var hasFinished: Bool { hasArrived || departure.isServiceComplete }
+
+    /// A train can reach an intermediate stop before Darwin supplies its arrival time.
+    var needsLiveDetails: Bool { reportedArrival == nil && !departure.isServiceComplete }
+
+    func isCurrent(since dayStart: Date) -> Bool {
+        if departure.scheduled >= dayStart { return true }
+        if let arrivalReport { return arrivalReport >= dayStart }
+        guard !hasFinished, !departure.isCancelledAtDestination else { return false }
+        // A train due to arrive after the reset still belongs on the board while en route.
+        return (departure.expectedArrival ?? departure.scheduledArrival ?? departure.expected ?? departure.scheduled) >= dayStart
+    }
 
     func accepting(_ update: Departure) -> TrackedJourney {
         guard update.id == id, update.origin == departure.origin,
               update.callingAt == departure.callingAt,
               (update.observedAt ?? .distantPast) >= (departure.observedAt ?? .distantPast)
         else { return self }
-        return TrackedJourney(departure: update.mergingEarlierStops(from: departure))
+        var merged = update.mergingEarlierStops(from: departure)
+        merged.scheduledArrival = merged.scheduledArrival ?? departure.scheduledArrival
+        if !merged.isCancelledAtDestination {
+            merged.actualArrival = TrackedJourney(departure: merged).reportedArrival ?? reportedArrival
+            if let previousDeparture = reportedDepartureFromDestination,
+               let index = merged.routeStops?.firstIndex(where: \.isDestination),
+               merged.routeStops?[index].actualDeparture == nil {
+                merged.routeStops?[index].actualDeparture = previousDeparture
+                merged.routeStops?[index].actual = previousDeparture
+            }
+        }
+        let updated = TrackedJourney(departure: merged)
+        if hasArrived && !updated.hasArrived || hasFinished && !updated.hasFinished { return self }
+        return updated
     }
 }

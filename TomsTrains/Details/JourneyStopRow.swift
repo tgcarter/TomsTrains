@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct JourneyStopRow: View {
-    let service: Departure
+    let position: RoutePosition?
+    let marksBoardStation: Bool
+    let isAwaitingDepartureAtOrigin: Bool
     let stop: RouteStop
     let index: Int
     let stops: [RouteStop]
@@ -12,12 +14,13 @@ struct JourneyStopRow: View {
         let topPadding: CGFloat = isFirst ? 0 : 16
         let destinationIndex = stops.firstIndex(where: \.isDestination) ?? stops.count
         let onward = index > destinationIndex
-        let reported = service.lastReportedStop?.id == stop.id
-        let progress = service.routeProgress ?? -1
+        let reported = position?.last.id == stop.id
+        let progress = position?.progress ?? -1
+        let isBetweenStations = position?.isBetweenStations == true
         let completed = !stop.isCancelled && Double(index) <= progress
-        let hasDeparted = stop.actualDeparture.map { $0 <= (service.observedAt ?? .distantPast) } == true
+        let hasDeparted = stop.actualDeparture.map { $0 <= (stop.reportedAt ?? .distantPast) } == true
             || progress > Double(index)
-        let progressColor: Color = service.isServiceComplete ? .secondary : .accentColor
+        let progressColor = Color.accentColor
         let color: Color = stop.isCancelled ? .red : (completed ? progressColor : .secondary)
         let incomingColor: Color = Double(index) <= progress ? progressColor : .secondary
         let outgoingColor: Color = Double(index + 1) <= progress ? progressColor : .secondary
@@ -32,7 +35,9 @@ struct JourneyStopRow: View {
                     .foregroundStyle(stop.isCancelled ? Color.red : .primary)
                     .fixedSize()
             }
-            if stop.isDestination {
+            if marksBoardStation && (stop.isDestination || stop.isBoarding) {
+                Text("This Station").font(.caption).foregroundStyle(.tint)
+            } else if stop.isDestination {
                 Text(stop.isCancelled ? "Your Stop" : "Your Destination")
                     .font(.caption).foregroundStyle(stop.isCancelled ? Color.red : .accentColor)
             } else if stop.isBoarding && (stop.isCancelled || !hasDeparted) {
@@ -51,7 +56,7 @@ struct JourneyStopRow: View {
                     .font(.caption2).foregroundStyle(.secondary)
             }
             if reported {
-                Text(service.isBetweenStations ? "Departed" : "Last Reported Stop")
+                Text(isBetweenStations ? "Departed" : "Last Reported Stop")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -70,8 +75,8 @@ struct JourneyStopRow: View {
                     Rectangle().fill(index == stops.count - 1 ? .clear : outgoingColor)
                         .frame(width: 3, height: max(0, geometry.size.height - markerY))
                         .offset(x: 12.5, y: markerY)
-                    if reported && service.isBetweenStations {
-                        Rectangle().fill(Color.accentColor)
+                    if reported && isBetweenStations {
+                        Rectangle().fill(progressColor)
                             .frame(width: 3, height: max(0, geometry.size.height - markerY) / 2)
                             .offset(x: 12.5, y: markerY)
                     }
@@ -79,8 +84,10 @@ struct JourneyStopRow: View {
                         Circle().fill(Color(uiColor: .secondarySystemGroupedBackground))
                         if stop.isCancelled {
                             Image(systemName: "xmark.circle.fill").font(.system(size: 18))
-                        } else if reported && !service.isBetweenStations && !service.isServiceComplete {
-                            Image(systemName: "tram.fill").font(.system(size: 15, weight: .semibold))
+                        } else if isAwaitingDepartureAtOrigin || (reported && !isBetweenStations) {
+                            Image(systemName: "tram.fill")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(progressColor)
                         } else if completed {
                             Circle().fill(color)
                                 .frame(width: stop.isDestination ? 18 : 12, height: stop.isDestination ? 18 : 12)
@@ -91,10 +98,10 @@ struct JourneyStopRow: View {
                     }
                     .foregroundStyle(color).frame(width: 28, height: 28)
                     .offset(y: markerY - 14)
-                    if reported && service.isBetweenStations {
+                    if reported && isBetweenStations {
                         Image(systemName: "tram.fill")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(progressColor)
                             .frame(width: 28, height: 28)
                             .background(Color(uiColor: .secondarySystemGroupedBackground))
                             .offset(y: markerY + (geometry.size.height - markerY) / 2 - 14)
@@ -107,7 +114,44 @@ struct JourneyStopRow: View {
         }
         .foregroundStyle(onward ? .secondary : .primary)
         .accessibilityElement(children: .combine)
+        .accessibilityValue(isAwaitingDepartureAtOrigin ? "Awaiting departure report" : "")
     }
 
 
+}
+
+struct JourneyRouteSection: View {
+    let stops: [RouteStop]
+    let position: RoutePosition?
+    let isCancelled: Bool
+    var marksBoardStation = false
+
+    var body: some View {
+        let nextStop = stops.dropFirst().first { !$0.isCancelled }
+        let isAwaitingDeparture = !isCancelled && position == nil
+            && stops.first?.isAwaitingFirstDeparture(at: .now, nextStop: nextStop) == true
+        Section {
+            if stops.isEmpty {
+                Text("Calling points unavailable").foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(stops.enumerated()), id: \.element.id) { index, stop in
+                        JourneyStopRow(position: position, marksBoardStation: marksBoardStation,
+                            isAwaitingDepartureAtOrigin: index == 0 && isAwaitingDeparture, stop: stop, index: index, stops: stops)
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(20)
+                .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 26))
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+        } header: {
+            Text("Route")
+        } footer: {
+            NationalRailAttribution()
+        }
+        .listSectionMargins(.vertical, 0)
+    }
 }

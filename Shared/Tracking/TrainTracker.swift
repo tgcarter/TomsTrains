@@ -5,8 +5,14 @@ import Observation
 final class TrainTracker {
     private let store: TrackingStore
     private let provider: any DepartureProviding
+    private let clock: @Sendable () -> Date
+    private var routeSettings: RouteSettings
     private var refreshing = false
     private(set) var journeys: [TrackedJourney]
+    private var archivedJourneys: [TrackedJourney]
+    var previouslyTracked: [TrackedJourney] {
+        (journeys + archivedJourneys).sorted { $0.departure.scheduled > $1.departure.scheduled }
+    }
     var errors: [String: String] = [:]
     private(set) var autoRules: [AutoTrackingRule]
     private var automaticErrors: [UUID: String] = [:]
@@ -17,12 +23,17 @@ final class TrainTracker {
     private var lastAutomaticChecks: [UUID: Date] = [:]
 
 
-    init(defaults: UserDefaults = .standard, provider: any DepartureProviding = NationalRailProvider()) {
+    init(defaults: UserDefaults = .standard, provider: any DepartureProviding = NationalRailProvider(),
+         routeSettings: RouteSettings = .load(), clock: @escaping @Sendable () -> Date = { Date() }) {
         store = TrackingStore(defaults: defaults)
         self.provider = provider
-        journeys = store.loadJourneys().filter { !$0.hasFinished }
+        self.routeSettings = routeSettings
+        self.clock = clock
+        let saved = store.loadJourneys()
+        journeys = saved.current
+        archivedJourneys = saved.archived
         autoRules = store.loadRules()
-        save()
+        pruneExpired()
     }
 
     private func matches(_ existing: Departure, _ update: Departure) -> Bool {
@@ -32,53 +43,87 @@ final class TrainTracker {
 
     func contains(_ departure: Departure) -> Bool { journeys.contains { matches($0.departure, departure) } }
 
+    func pruneExpired(settings: RouteSettings? = nil) {
+        if let settings { routeSettings = settings }
+        let dayStart = routeSettings.travelDayStart(at: clock())
+        let expired = journeys.filter { !$0.isCurrent(since: dayStart) }
+        guard !expired.isEmpty else { return }
+        let expiredIDs = Set(expired.map(\.id))
+        journeys.removeAll { expiredIDs.contains($0.id) }
+        archivedJourneys.append(contentsOf: expired)
+        for id in expiredIDs { errors[id] = nil }
+        save()
+    }
+
+    func canStartTracking(_ departure: Departure) -> Bool {
+        let journey = TrackedJourney(departure: departure)
+        return !journey.hasFinished && journey.isCurrent(since: routeSettings.travelDayStart(at: clock()))
+    }
+
     func toggle(_ departure: Departure) {
+        pruneExpired()
+        if contains(departure) {
+            removeFromHistory(departure)
+            return
+        }
+        guard canStartTracking(departure) else { return }
+        markAutomaticRulesHandled(for: departure)
+        startTracking(departure)
+    }
+
+    private func startTracking(_ departure: Departure) {
+        archivedJourneys.removeAll { matches($0.departure, departure) }
+        journeys.append(TrackedJourney(departure: departure))
+        journeys.sort { $0.departure.scheduled < $1.departure.scheduled }
+        save()
+    }
+
+    func removeFromHistory(_ departure: Departure) {
+        let removed = journeys.filter { matches($0.departure, departure) }
+        if !removed.isEmpty { markAutomaticRulesHandled(for: departure) }
+        journeys.removeAll { matches($0.departure, departure) }
+        archivedJourneys.removeAll { matches($0.departure, departure) }
+        for journey in removed { errors[journey.id] = nil }
+        save()
+    }
+
+    private func markAutomaticRulesHandled(for departure: Departure) {
         for index in autoRules.indices where autoRules[index].matches(departure) {
             autoRules[index].lastHandledDay = JourneyDirection.londonCalendar.startOfDay(for: departure.scheduled)
         }
         store.saveRules(autoRules)
-        if contains(departure) {
-            let removed = journeys.filter { matches($0.departure, departure) }.map(\.id)
-            journeys.removeAll { removed.contains($0.id) }
-            for id in removed { errors[id] = nil }
-            errors[departure.id] = nil
-        } else {
-            let journey = TrackedJourney(departure: departure)
-            guard !journey.hasFinished else { return }
-            journeys.append(journey)
-            journeys.sort { $0.departure.scheduled < $1.departure.scheduled }
-        }
-        save()
     }
 
-    func receive(_ departure: Departure) {
+    func receive(_ departure: Departure, fromLiveDetails: Bool = false) {
         guard let index = journeys.firstIndex(where: { matches($0.departure, departure) }) else { return }
         var incoming = departure
         incoming.id = journeys[index].id
         let updated = journeys[index].accepting(incoming)
-        if updated.hasFinished {
-            journeys.remove(at: index)
-        } else {
-            journeys[index] = updated
-        }
-        errors[incoming.id] = nil
+        guard updated.departure.observedAt == incoming.observedAt else { return }
+        journeys[index] = updated
+        if fromLiveDetails || updated.hasFinished || updated.departure.isCancelledAtDestination { errors[incoming.id] = nil }
         save()
     }
 
     func refresh() async {
+        pruneExpired()
         guard !refreshing else { return }
         refreshing = true
         defer { refreshing = false }
-        for journey in journeys {
+        for id in journeys.map(\.id) {
             guard !Task.isCancelled else { return }
+            guard let journey = journeys.first(where: { $0.id == id }), journey.needsLiveDetails else { continue }
             do {
                 let updated = try await provider.serviceDetails(for: journey.departure)
                 guard !Task.isCancelled else { return }
-                receive(updated)
+                pruneExpired()
+                receive(updated, fromLiveDetails: true)
             } catch {
                 guard !Task.isCancelled else { return }
-                if journeys.contains(where: { $0.id == journey.id }) {
-                    errors[journey.id] = "Live update unavailable · showing last report"
+                pruneExpired()
+                if let current = journeys.first(where: { $0.id == id }), !current.hasFinished,
+                   !current.departure.isCancelledAtDestination {
+                    errors[id] = "Live update unavailable · showing last report"
                 }
             }
         }
@@ -132,11 +177,8 @@ final class TrainTracker {
                       JourneyDirection.londonCalendar.isDate(departure.scheduled, inSameDayAs: now) else { continue }
                 autoRules[index].lastHandledDay = JourneyDirection.londonCalendar.startOfDay(for: now)
                 store.saveRules(autoRules)
-                let journey = TrackedJourney(departure: departure)
-                guard !journey.hasFinished, !contains(departure) else { continue }
-                journeys.append(journey)
-                journeys.sort { $0.departure.scheduled < $1.departure.scheduled }
-                save()
+                guard canStartTracking(departure), !contains(departure) else { continue }
+                startTracking(departure)
             } catch {
                 guard !Task.isCancelled else { return }
                 if autoRules.contains(rule) { automaticErrors[rule.id] = "Live lookup failed" }
@@ -144,5 +186,5 @@ final class TrainTracker {
         }
     }
 
-    private func save() { store.saveJourneys(journeys) }
+    private func save() { store.saveJourneys(.init(current: journeys, archived: archivedJourneys)) }
 }

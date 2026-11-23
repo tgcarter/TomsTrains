@@ -7,15 +7,18 @@ struct NationalRailProvider: DepartureProviding {
     private let detailsKey: String
     private let client: RailHTTPClient
     private let reference: NationalRailReference
+    private let clock: @Sendable () -> Date
     static let baseURL = URL(string: "https://api1.raildata.org.uk/1010-live-departure-board---staff-version1_0/LDBSVWS/api/20220120/")!
     static let detailsURL = URL(string: "https://api1.raildata.org.uk/1010-query-services-and-service-details1_0/LDBSVWS/api/20220120/")!
 
     init(settings: RouteSettings = RouteSettings(),
          apiKey: String = Bundle.main.object(forInfoDictionaryKey: "NationalRailBoardAPIKey") as? String ?? "",
          detailsKey: String = Bundle.main.object(forInfoDictionaryKey: "NationalRailQueryServicesAPIKey") as? String ?? "",
-         transport: Transport? = nil, reference: NationalRailReference = NationalRailReference()) {
+         transport: Transport? = nil, reference: NationalRailReference = NationalRailReference(),
+         clock: @escaping @Sendable () -> Date = { Date() }) {
         self.settings = settings
         self.reference = reference
+        self.clock = clock
         self.apiKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
         self.detailsKey = detailsKey.trimmingCharacters(in: .whitespacesAndNewlines)
         client = RailHTTPClient(transport: transport)
@@ -33,7 +36,7 @@ struct NationalRailProvider: DepartureProviding {
         // The API returns a time window, not the next N trains. Search both origins
         // in each window, including after midnight, until the requested number of trains is available.
         // Do not fill tonight's board with the following morning's services.
-        let searchStart = tomorrow ? settings.travelDayEnd(after: date) : date.addingTimeInterval(-60)
+        let searchStart = tomorrow ? settings.travelDayEnd(after: date) : RailDate.minuteStart(date).addingTimeInterval(-60)
         let cutoff = settings.travelDayEnd(after: tomorrow ? searchStart : date)
         for offset in stride(from: 0, to: 1560, by: 120) {
             try Task.checkCancellation()
@@ -69,7 +72,7 @@ struct NationalRailProvider: DepartureProviding {
         guard rule.isDue(on: date), let scheduled = rule.scheduled(on: date) else { return nil }
         let loaded = try await stationBoards(origin: rule.origin, destination: rule.destination,
             start: scheduled, window: 1)
-        guard loaded.allSatisfy({ date.timeIntervalSince($0.fetchedAt) < 300 && date.timeIntervalSince($0.fetchedAt) >= -60 }) else {
+        guard loaded.allSatisfy({ RailDate.isFreshReport($0.fetchedAt, at: date) }) else {
             throw RailAPIError.unavailable
         }
         var seen = Set<String>()
@@ -117,9 +120,15 @@ struct NationalRailProvider: DepartureProviding {
     }
 
     private func stationBoards(origin: Station, destination: Station, start: Date, window: Int) async throws -> [DepartureSnapshot] {
+        try await stationBoardData(origin: origin, destination: destination, start: start, window: window).map {
+            try DarwinDecoder.decode($0, origin: origin, destination: destination, now: start)
+        }
+    }
+
+    func stationBoardData(origin: Station, destination: Station?, start: Date, window: Int) async throws -> [Data] {
         let end = start.addingTimeInterval(Double(window * 60))
         var cursor = start
-        var results: [DepartureSnapshot] = []
+        var results: [Data] = []
         // Follow explicitly truncated boards; never silently drop a busy station's services.
         while cursor < end {
             try Task.checkCancellation()
@@ -127,7 +136,7 @@ struct NationalRailProvider: DepartureProviding {
                 window: max(1, Int(ceil(end.timeIntervalSince(cursor) / 60))))
             let data = try await send(request, key: apiKey)
             let object = try DarwinDecoder.object(data)
-            results.append(try DarwinDecoder.decode(data, origin: origin, destination: destination, now: start))
+            results.append(data)
             guard object["isTruncated"] as? Bool == true else { break }
             let services = object["trainServices"] as? [[String: Any]] ?? []
             guard let last = services.compactMap({ DarwinDecoder.time($0["std"]) }).max(), last >= cursor else {
@@ -138,17 +147,25 @@ struct NationalRailProvider: DepartureProviding {
         return results
     }
 
-    func request(origin: Station, destination: Station, start: Date, window: Int = 120) -> URLRequest {
+    func request(origin: Station, destination: Station?, start: Date, window: Int = 120) -> URLRequest {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = JourneyDirection.londonCalendar.timeZone
         formatter.dateFormat = "yyyyMMdd'T'HHmmss"
         var components = URLComponents(url: Self.baseURL.appendingPathComponent("GetDepBoardWithDetails")
             .appendingPathComponent(origin.rawValue).appendingPathComponent(formatter.string(from: start)), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "numRows", value: "150"),
-            URLQueryItem(name: "filterCrs", value: destination.rawValue), URLQueryItem(name: "filterType", value: "to"),
-            URLQueryItem(name: "timeWindow", value: String(window))]
+        components.queryItems = [URLQueryItem(name: "numRows", value: "150"), URLQueryItem(name: "timeWindow", value: String(window))]
+        if let destination {
+            components.queryItems?.append(contentsOf: [URLQueryItem(name: "filterCrs", value: destination.rawValue),
+                URLQueryItem(name: "filterType", value: "to")])
+        }
         return URLRequest(url: components.url!, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
+    }
+
+    func serviceDetailsData(forRID rid: String) async throws -> Data {
+        let request = URLRequest(url: Self.detailsURL.appendingPathComponent("GetServiceDetailsByRID").appendingPathComponent(rid),
+            cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
+        return try await send(request, key: detailsKey)
     }
 
     func serviceDetails(for departure: Departure) async throws -> Departure {
@@ -166,22 +183,78 @@ struct NationalRailProvider: DepartureProviding {
             rid = rids.first
         }
         guard let rid else { throw RailAPIError.unavailable }
-        let request = URLRequest(url: Self.detailsURL.appendingPathComponent("GetServiceDetailsByRID").appendingPathComponent(rid),
-            cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-        let data = try await send(request, key: detailsKey)
-        let object = try DarwinDecoder.object(data)
-        guard object["rid"] as? String == rid,
-              let observed = DarwinDecoder.time(object["generatedAt"]),
-              let locations = object["locations"] as? [[String: Any]],
+        let data = try await serviceDetailsData(forRID: rid)
+        let decoded = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed)
+        // Darwin returns HTTP 200 with JSON null for a valid but unknown RID.
+        if decoded is NSNull {
+            return try await fallbackDetails(for: departure, rid: rid, destination: destination)
+        }
+        guard let object = decoded as? [String: Any], object["rid"] as? String == rid,
+              let observed = DarwinDecoder.time(object["generatedAt"]) else { throw RailAPIError.invalidResponse }
+        if DarwinDecoder.isWithdrawn(object) {
+            return try await explained(DarwinDecoder.withdrawnDeparture(departure, service: object, observed: observed, rid: rid))
+        }
+        guard let locations = object["locations"] as? [[String: Any]],
               let boarding = locations.firstIndex(where: { $0["crs"] as? String == departure.origin.rawValue && DarwinDecoder.time($0["std"]) == departure.scheduled }),
               let result = DarwinDecoder.departure(service: object, locations: locations, boarding: boarding,
                 destination: destination, observed: observed, id: departure.id, hasCompleteRoute: true) else { throw RailAPIError.invalidResponse }
-        let merged = result.mergingEarlierStops(from: departure)
-        do { return try await reference.explaining([merged]).first ?? merged }
+        return try await explained(result.mergingEarlierStops(from: departure))
+    }
+
+    private func fallbackDetails(for departure: Departure, rid: String, destination: Station) async throws -> Departure {
+        let expected = departure.expected ?? departure.scheduled
+        let start = min(departure.scheduled, expected).addingTimeInterval(-60)
+        let window = Int(ceil(max(departure.scheduled, expected).timeIntervalSince(start) / 60)) + 1
+        guard window <= 120, clock() < max(departure.scheduled, expected).addingTimeInterval(7200) else {
+            throw RailAPIError.serviceNotFound
+        }
+
+        // The visible board is filtered, paginated and drops trains after they
+        // depart. Check the original boarding window and unfiltered service IDs.
+        let request = request(origin: departure.origin, destination: nil, start: start, window: window)
+        let board = try DarwinDecoder.object(try await send(request, key: apiKey))
+        let now = clock()
+        guard board["crs"] as? String == departure.origin.rawValue,
+              board["servicesAreUnavailable"] as? Bool != true,
+              let observed = DarwinDecoder.time(board["generatedAt"]),
+              RailDate.isFreshReport(observed, at: now),
+              observed >= (departure.observedAt ?? .distantPast) else { throw RailAPIError.unavailable }
+        let rawServices = board["trainServices"]
+        guard rawServices == nil || rawServices is NSNull || rawServices is [[String: Any]] else {
+            throw RailAPIError.invalidResponse
+        }
+        let services = rawServices as? [[String: Any]] ?? []
+        let matches = services.filter { $0["rid"] as? String == rid }
+        if let service = matches.first(where: { DarwinDecoder.time($0["std"]) == departure.scheduled }) {
+            if DarwinDecoder.isWithdrawn(service) {
+                return try await explained(DarwinDecoder.withdrawnDeparture(departure, service: service, observed: observed, rid: rid))
+            }
+            if let result = DarwinDecoder.departure(fromBoardService: service, board: board,
+                origin: departure.origin, destination: destination, observed: observed, id: departure.id) {
+                return try await explained(result.mergingEarlierStops(from: departure))
+            }
+        }
+
+        // Absence is only useful while the train was still due to depart. Once
+        // due, the board could simply have dropped a train that ran normally.
+        let hasDeparted = departure.routeStops?.drop(while: { !$0.isBoarding }).contains {
+            $0.actualDeparture != nil || (!$0.isBoarding && $0.actual != nil)
+        } == true
+        guard matches.isEmpty, services.allSatisfy({ $0["rid"] is String }),
+              board["isTruncated"] as? Bool != true,
+              let previousReport = departure.observedAt, observed > previousReport,
+              now < expected, observed < expected, !hasDeparted, !departure.isCancelledAtDestination,
+              !TrackedJourney(departure: departure).hasFinished else { throw RailAPIError.serviceNotFound }
+        return DarwinDecoder.withdrawnDeparture(departure, service: [:], observed: observed, rid: rid,
+            reason: "This service was removed from National Rail’s departure board.")
+    }
+
+    private func explained(_ departure: Departure) async throws -> Departure {
+        do { return try await reference.explaining([departure]).first ?? departure }
         catch {
             try Task.checkCancellation()
             // A reference-data outage must never prevent fresh train updates.
-            return merged
+            return departure
         }
     }
 

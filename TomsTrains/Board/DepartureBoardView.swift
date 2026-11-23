@@ -3,24 +3,16 @@ import SwiftUI
 struct DepartureBoardView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var board = DepartureBoard()
-    @State private var tracker = TrainTracker()
-    @State private var settings = RouteSettings.load()
-    @State private var showingSettings = false
+    @Binding var settings: RouteSettings
+    let tracker: TrainTracker
+    let isVisible: Bool
     @State private var selectedDeparture: Departure?
     @State private var selectedNotice: StationNotice.Group?
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    EmptyView()
-                } header: {
-                    DepartureBoardHeader(title: settings.selection(at: board.now).title)
-                        .foregroundStyle(.primary)
-                        .textCase(nil)
-                        .listRowInsets(EdgeInsets())
-                }
-                .listSectionMargins(.top, 0)
+                DepartureBoardHeader(title: settings.selection(at: board.now).title, trailingSpace: 108)
                 if let error = board.errorMessage, !board.showsInitialLoading {
                     Section {
                         VStack(alignment: .leading, spacing: 8) {
@@ -49,7 +41,13 @@ struct DepartureBoardView: View {
                             Button { selectedDeparture = journey.departure } label: {
                                 VStack(alignment: .leading, spacing: 8) {
                                     DepartureRow(departure: journey.departure, isNext: false, showsJourneyStatus: true)
-                                    trackedPosition(journey.departure)
+                                    if journey.departure.isCancelledAtDestination {
+                                        if let reason = journey.departure.disruptionReason {
+                                            Text(reason).font(.caption).foregroundStyle(.secondary)
+                                        }
+                                    } else if !journey.hasArrived {
+                                        trackedPosition(journey.departure)
+                                    }
                                     if let error = tracker.errors[journey.id] {
                                         Label(error, systemImage: "wifi.exclamationmark")
                                             .font(.caption).foregroundStyle(.orange)
@@ -63,7 +61,7 @@ struct DepartureBoardView: View {
                             .buttonStyle(.plain)
                             .swipeActions(allowsFullSwipe: false) {
                                 Button("Stop Tracking", systemImage: "pin.slash", role: .destructive) {
-                                    tracker.toggle(journey.departure)
+                                    tracker.removeFromHistory(journey.departure)
                                 }
                             }
                         }
@@ -71,17 +69,18 @@ struct DepartureBoardView: View {
                 }
 
                 Section {
-                    if board.canLoadEarlier {
-                    Button {
-                        Task { await board.loadEarlier() }
+                    NavigationLink {
+                        TrackedJourneyHistoryView(tracker: tracker)
                     } label: {
-                        HStack {
-                            Text("See Earlier")
-                            Spacer()
-                            if board.isLoadingEarlier { ProgressView() }
-                        }
+                        Label("Previously tracked", systemImage: "clock.arrow.circlepath")
                     }
-                    .disabled(board.isLoadingEarlier)
+                }
+
+                Section {
+                    if board.canLoadEarlier {
+                        BoardPageButton(title: "See Earlier", isLoading: board.isLoadingEarlier) {
+                            await board.loadEarlier()
+                        }
                     }
 
                     if board.hasLoadedEarlier {
@@ -99,52 +98,40 @@ struct DepartureBoardView: View {
                         }
                     }
 
+                    let upcoming = upcomingDepartures
                     if board.showsInitialLoading {
                         DepartureLoadingHeader()
                         ForEach(0..<3) { index in
                             DepartureSkeletonRow(isNext: index == 0)
                                 .accessibilityHidden(true)
                         }
-                    } else if upcomingDepartures.isEmpty && board.earlier.isEmpty {
+                    } else if upcoming.isEmpty && board.earlier.isEmpty {
                         ContentUnavailableView(board.errorMessage == nil ? "No Upcoming Trains" : "TomsTrains Unavailable",
                             systemImage: board.errorMessage == nil ? "tram" : "wifi.exclamationmark",
                             description: Text(board.errorMessage == nil
                                 ? "No more matching services before the overnight reset."
                                 : "Pull down to try again."))
                     } else {
-                        ForEach(upcomingDepartures) { departure in
+                        let earliest = upcoming.first { !$0.isCancelledAtDestination }?.id
+                        ForEach(upcoming) { departure in
                             Button {
                                 selectedDeparture = departure
                             } label: {
-                                DepartureRow(departure: departure, isNext: departure.id == upcomingDepartures.first(where: { !$0.isCancelledAtDestination })?.id)
+                                DepartureRow(departure: departure, isNext: departure.id == earliest)
                             }
                             .buttonStyle(.plain)
                             .accessibilityHint("Shows train details")
                         }
                     }
                     if board.canLoadLater {
-                        Button {
-                            Task { await board.loadLater() }
-                        } label: {
-                            HStack {
-                                Text("See Later")
-                                Spacer()
-                                if board.isLoading { ProgressView() }
-                            }
+                        BoardPageButton(title: "See Later", isLoading: board.isLoading) {
+                            await board.loadLater()
                         }
-                        .disabled(board.isLoading)
                     }
                     if board.canShowTomorrow || board.tomorrowError != nil {
-                        Button {
-                            Task { await board.loadTomorrow() }
-                        } label: {
-                            HStack {
-                                Text("See Tomorrow’s Services")
-                                Spacer()
-                                if board.isLoadingTomorrow { ProgressView() }
-                            }
+                        BoardPageButton(title: "See Tomorrow’s Services", isLoading: board.isLoadingTomorrow) {
+                            await board.loadTomorrow()
                         }
-                        .disabled(board.isLoadingTomorrow)
                     }
                     if let error = board.tomorrowError {
                         Text(error).font(.footnote).foregroundStyle(.orange)
@@ -164,41 +151,17 @@ struct DepartureBoardView: View {
                         }
                     }
                     if board.showsTomorrow && board.canLoadLaterTomorrow {
-                        Button {
-                            Task { await board.loadLaterTomorrow() }
-                        } label: {
-                            HStack {
-                                Text("See Later")
-                                Spacer()
-                                if board.isLoadingTomorrow { ProgressView() }
-                            }
+                        BoardPageButton(title: "See Later", isLoading: board.isLoadingTomorrow) {
+                            await board.loadLaterTomorrow()
                         }
-                        .disabled(board.isLoadingTomorrow)
                     }
                 } header: {
                     Text(settings.selection(at: board.now).subtitle)
                 } footer: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ViewThatFits(in: .horizontal) {
-                            HStack(alignment: .top, spacing: 8) {
-                                if let snapshot = board.snapshot {
-                                    Text("Updated \(RailTime.string(snapshot.fetchedAt))")
-                                        .fixedSize()
-                                }
-                                Spacer(minLength: 0)
-                                NationalRailAttribution().fixedSize(horizontal: true, vertical: false)
-                            }
-                            VStack(alignment: .leading, spacing: 6) {
-                                if let snapshot = board.snapshot {
-                                    Text("Updated \(RailTime.string(snapshot.fetchedAt))")
-                                }
-                                NationalRailAttribution()
-                            }
-                        }
-                        if settings.isManual(at: board.now), let until = settings.manualUntil {
-                            Text("Manually reversed · automatic from \(RailTime.string(until))")
-                        }
-                    }
+                    BoardFooter(
+                        updatedAt: board.snapshot?.fetchedAt,
+                        manualReversalUntil: settings.isManual(at: board.now) ? settings.manualUntil : nil
+                    )
                 }
             }
             .contentMargins(.top, 0, for: .scrollContent)
@@ -207,8 +170,7 @@ struct DepartureBoardView: View {
                     refresh: { Task { await refresh(resetPagination: true) } },
                     reverse: {
                         settings.reverse(at: Date())
-                        persistSettings()
-                    }, settings: { showingSettings = true })
+                    })
                     .padding(.trailing, 20)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -219,14 +181,15 @@ struct DepartureBoardView: View {
                 DepartureDetailView(departure: tracker.journeys.first(where: { $0.id == departure.id })?.departure ?? board.snapshot?.departures.first(where: { $0.id == departure.id }) ?? departure, tracker: tracker)
             }
             .sheet(item: $selectedNotice) { StationNoticeSheet(notice: $0) }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView(draft: settings, tracker: tracker) { updated in
-                    settings = updated
-                    persistSettings()
+            .onChange(of: settings) { previous, updated in
+                let now = Date()
+                if previous.selection(at: now).key != updated.selection(at: now).key {
+                    board.snapshot = nil
+                    board.errorMessage = nil
                 }
             }
-            .task(id: RefreshTrigger(scenePhase: scenePhase, settings: settings)) {
-                guard scenePhase == .active else { return }
+            .task(id: RefreshTrigger(active: scenePhase == .active && isVisible, settings: settings)) {
+                guard scenePhase == .active, isVisible else { return }
                 await refresh()
                 while !Task.isCancelled {
                     do { try await Task.sleep(for: .seconds(max(0.1, min(30, settings.nextTransition(after: Date()).timeIntervalSinceNow)))) }
@@ -235,8 +198,6 @@ struct DepartureBoardView: View {
                 }
             }
         }
-        .tint(.blue)
-        .preferredColorScheme(settings.appearance.colorScheme)
     }
     private var upcomingDepartures: [Departure] {
         let earlierIDs = board.hasLoadedEarlier ? Set(board.earlier.map(\.id)) : []
@@ -244,10 +205,14 @@ struct DepartureBoardView: View {
     }
 
     private func refresh(resetPagination: Bool = false) async {
+        tracker.pruneExpired(settings: settings)
         await board.refresh(settings: settings, resetPagination: resetPagination)
+        guard !Task.isCancelled else { return }
         for departure in board.snapshot?.departures ?? [] { tracker.receive(departure) }
-        await tracker.refresh()
-        await tracker.autoTrack(at: Date())
+        if resetPagination {
+            await tracker.refresh()
+            await tracker.autoTrack(at: Date())
+        }
     }
 
     @ViewBuilder private func trackedPosition(_ departure: Departure) -> some View {
@@ -267,18 +232,10 @@ struct DepartureBoardView: View {
     }
 
     private struct RefreshTrigger: Equatable {
-        let scenePhase: ScenePhase
+        let active: Bool
         let settings: RouteSettings
-    }
-    private func persistSettings() {
-        settings.save()
-        board.settings = settings
-        board.now = Date()
-        board.resetEarlier()
-        board.snapshot = nil
-        board.errorMessage = nil
     }
 }
 
 
-#Preview { DepartureBoardView() }
+#Preview { DepartureBoardView(settings: .constant(RouteSettings()), tracker: TrainTracker(), isVisible: true) }

@@ -1,5 +1,34 @@
 import Foundation
 
+struct RoutePosition: Sendable {
+    let last: RouteStop
+    let next: RouteStop?
+    let progress: Double
+    let isBetweenStations: Bool
+
+    init?(stops: [RouteStop], observedAt: Date, hasEnded: Bool = false) {
+        let reports = stops.enumerated().compactMap { index, stop -> (Int, Date)? in
+            guard !stop.isCancelled, let actual = stop.actual, actual <= observedAt else { return nil }
+            return (index, actual)
+        }
+        guard let report = reports.max(by: { first, second in
+            first.1 == second.1 ? first.0 < second.0 : first.1 < second.1
+        }) else { return nil }
+        let index = report.0
+        last = stops[index]
+        next = hasEnded ? nil : stops.dropFirst(index + 1).first {
+            !$0.isCancelled && ($0.actual.map { $0 > observedAt } ?? true)
+        }
+        isBetweenStations = next != nil && last.actualDeparture.map { $0 <= observedAt } == true
+        progress = Double(index) + (isBetweenStations ? 0.5 : 0)
+    }
+
+    var label: String {
+        if isBetweenStations, let next { return "Between \(last.name) and \(next.name)" }
+        return "Last reported at \(last.name)"
+    }
+}
+
 struct RouteStop: Identifiable, Equatable, Codable, Sendable {
     var id: String
     let crs: String
@@ -7,7 +36,7 @@ struct RouteStop: Identifiable, Equatable, Codable, Sendable {
     let scheduled: Date?
     let expected: Date?
     var actual: Date?
-    let isCancelled: Bool
+    var isCancelled: Bool
     let estimate: String?
     let isBoarding: Bool
     let isDestination: Bool
@@ -19,10 +48,20 @@ struct RouteStop: Identifiable, Equatable, Codable, Sendable {
     enum ForecastEvent: String, Codable, Sendable { case arrival, departure }
     var forecastEvent: ForecastEvent? = nil
 
+    func isAwaitingFirstDeparture(at date: Date, nextStop: RouteStop? = nil) -> Bool {
+        guard !isCancelled, scheduledArrival == nil, let scheduledDeparture,
+              actual == nil, actualDeparture == nil else { return false }
+        if (expected ?? scheduledDeparture) >= date { return true }
+        guard let reportedAt, date.timeIntervalSince(reportedAt) < 300 else { return false }
+        let nextTime = nextStop?.expected ?? nextStop?.scheduledArrival ?? nextStop?.scheduled
+        return estimate == "Delayed" || nextTime.map { $0 >= date } == true
+    }
+
     var timingStatus: ServiceStatus {
         if isCancelled { return .cancelled }
         let baseline = timingBaseline
         guard let baseline, let time = actual ?? expected else {
+            if estimate == "Delayed" { return .delayedWithoutEstimate }
             return estimate.map { .disrupted($0) } ?? .unknown
         }
         let minutes = Int((time.timeIntervalSince(baseline) / 60).rounded())
@@ -67,6 +106,7 @@ struct RouteStop: Identifiable, Equatable, Codable, Sendable {
         switch timingStatus {
         case .onTime: return "Expected on time"
         case .delayed(let minutes): return "Expected \(minutes) min late"
+        case .delayedWithoutEstimate: return "Delayed · no estimate"
         case .early(let minutes): return "Expected \(minutes) min early"
         case .disrupted(let message): return message
         default: return "Awaiting update"

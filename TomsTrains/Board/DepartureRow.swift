@@ -6,6 +6,7 @@ struct DepartureRow: View {
     var isEarlier = false
     var showsJourneyStatus = false
     private var displayedStatus: ServiceStatus { showsJourneyStatus ? departure.journeyStatus : departure.status }
+    private var hasArrived: Bool { showsJourneyStatus && TrackedJourney(departure: departure).hasArrived }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -45,11 +46,7 @@ struct DepartureRow: View {
                 }
             }
         }
-        .padding(.vertical, 4)
-        .saturation(isEarlier ? 0 : 1)
-        .opacity(isEarlier ? 0.55 : 1)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
+        .trainBoardRowStyle(isPast: isEarlier)
     }
 
     private var shownDepartureTime: Date {
@@ -78,10 +75,12 @@ struct DepartureRow: View {
 
     @ViewBuilder private var arrivalTime: some View {
         if !departure.isCancelledAtDestination {
-            let time = (departure.actualArrival ?? departure.expectedArrival).map(RailTime.string) ?? departure.arrivalLabel
-            Text("ETA \(time)")
+            let arrival = hasArrived
+                ? (departure.actualArrival.map { "Arrived \(RailTime.string($0))" } ?? "Arrived")
+                : (departure.expectedArrival.map { "ETA \(RailTime.string($0))" } ?? "Arrival time unavailable")
+            Text(arrival)
                 .font(.subheadline.weight(.medium)).monospacedDigit()
-                .foregroundStyle(timeColor(for: departure.journeyStatus))
+                .foregroundStyle(hasArrived && departure.actualArrival == nil ? .primary : timeColor(for: departure.journeyStatus))
         }
     }
 
@@ -102,13 +101,10 @@ struct DepartureRow: View {
                 Text("Departure unconfirmed · \(departure.status.label)")
                     .font(.caption).foregroundStyle(.secondary)
             }
-        } else {
-        HStack(spacing: 4) {
-            Image(systemName: displayedStatus.symbol)
-            Text(displayedStatus.label)
-        }
-        .font(.caption.weight(.medium))
-        .foregroundStyle(displayedStatus.color)
+        } else if !hasArrived || departure.actualArrival != nil && displayedStatus != .unknown {
+            Label(displayedStatus.label, systemImage: displayedStatus.symbol)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(displayedStatus.color)
         }
     }
 
@@ -123,5 +119,15 @@ struct DepartureRow: View {
                 Text("· \(minutes) min").font(.caption).foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+extension View {
+    func trainBoardRowStyle(isPast: Bool) -> some View {
+        padding(.vertical, 4)
+            .saturation(isPast ? 0 : 1)
+            .opacity(isPast ? 0.55 : 1)
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
     }
 }

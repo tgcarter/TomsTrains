@@ -14,6 +14,15 @@ struct RailHTTPClient: Sendable {
     }
 
     func load(_ request: URLRequest, key: String, lifetime: TimeInterval = 20) async throws -> Data {
+        #if os(iOS)
+        if usesCache {
+            let backend = try BackendClient.paired()
+            let data = try await DarwinResponseCache.shared.load(url: request.url!, key: backend.credential ?? "",
+                lifetime: lifetime, operation: { try await backend.rail(request.url!) })
+            try Task.checkCancellation()
+            return data
+        }
+        #endif
         guard !key.isEmpty, !key.contains("$(") else { throw RailAPIError.missingKey }
         var authenticated = request
         authenticated.setValue(key, forHTTPHeaderField: "x-apikey")

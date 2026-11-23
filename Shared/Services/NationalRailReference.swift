@@ -16,6 +16,12 @@ struct NationalRailReference: Sendable {
         let code: Int
         let lateReason: String?
         let cancReason: String?
+
+        func explanation(isCancelled: Bool) -> String? {
+            guard let text = isCancelled ? cancReason : lateReason else { return nil }
+            let cleaned = StationNotice.plainText(text)
+            return cleaned.isEmpty ? nil : cleaned
+        }
     }
 
     static func decodeReasons(_ data: Data) throws -> [Int: Reason] {
@@ -23,20 +29,19 @@ struct NationalRailReference: Sendable {
         return Dictionary(rows.map { ($0.code, $0) }, uniquingKeysWith: { _, latest in latest })
     }
 
+    func reasons() async throws -> [Int: Reason] {
+        try Self.decodeReasons(await load("GetReasonCodeList"))
+    }
+
     func explaining(_ departures: [Departure]) async throws -> [Departure] {
         guard departures.contains(where: { $0.delayReasonCode != nil || $0.cancellationReasonCode != nil }) else { return departures }
-        let reasons = try Self.decodeReasons(await load("GetReasonCodeList"))
+        let reasons = try await reasons()
         return departures.map { departure in
             var result = departure
-            let text: String?
-            if departure.isCancelledAtDestination {
-                text = departure.cancellationReasonCode.flatMap { reasons[$0]?.cancReason }
-            } else {
-                text = departure.delayReasonCode.flatMap { reasons[$0]?.lateReason }
-            }
-            if let text {
-                let cleaned = StationNotice.plainText(text)
-                if !cleaned.isEmpty { result.disruptionReason = cleaned }
+            let cancelled = departure.isCancelledAtDestination
+            let code = cancelled ? departure.cancellationReasonCode : departure.delayReasonCode
+            if let code, let text = reasons[code]?.explanation(isCancelled: cancelled) {
+                result.disruptionReason = text
             }
             return result
         }
