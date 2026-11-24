@@ -38,8 +38,8 @@ struct TrackedJourney: Codable, Identifiable, Equatable, Sendable {
     /// Completed journeys stay on the board until the travel-day reset.
     var hasFinished: Bool { hasArrived || departure.isServiceComplete }
 
-    /// A train can reach an intermediate stop before Darwin supplies its arrival time.
-    var needsLiveDetails: Bool { reportedArrival == nil && !departure.isServiceComplete }
+    /// History records the full route even after the passenger reaches their stop.
+    var needsLiveDetails: Bool { !departure.isServiceComplete }
 
     func isCurrent(since dayStart: Date) -> Bool {
         if departure.scheduled >= dayStart { return true }
@@ -67,6 +67,14 @@ struct TrackedJourney: Codable, Identifiable, Equatable, Sendable {
         }
         let updated = TrackedJourney(departure: merged)
         if hasArrived && !updated.hasArrived || hasFinished && !updated.hasFinished { return self }
+        if departure.isServiceComplete {
+            guard merged.isServiceComplete else { return self }
+            // A station-board refresh can end its stop list before the saved terminus.
+            if let lastStop = departure.lastReportedStop,
+               merged.routeStops?.contains(where: {
+                   $0.crs == lastStop.crs && $0.scheduled == lastStop.scheduled && !$0.isCancelled && $0.actual != nil
+               }) != true { return self }
+        }
         return updated
     }
 }

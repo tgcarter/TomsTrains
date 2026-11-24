@@ -1,10 +1,6 @@
 import Foundation
 
 enum RailDate {
-    static func minuteStart(_ date: Date) -> Date {
-        Date(timeIntervalSince1970: floor(date.timeIntervalSince1970 / 60) * 60)
-    }
-
     static let reportLifetime: TimeInterval = 300
 
     static func isFreshReport(_ observedAt: Date, at date: Date) -> Bool {

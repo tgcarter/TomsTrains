@@ -208,7 +208,8 @@ final class AutoTrackingTests: XCTestCase {
         var service = train("arrived", scheduled: date("2026-09-23T22:30:00Z"))
         tracker.toggle(service)
         service.actualArrival = date("2026-09-23T23:20:00Z")
-        service.observedAt = date("2026-09-23T23:21:00Z")
+        service.terminalActual = date("2026-09-23T23:40:00Z")
+        service.observedAt = date("2026-09-23T23:41:00Z")
         tracker.receive(service)
 
         var incomplete = service
@@ -234,7 +235,7 @@ final class AutoTrackingTests: XCTestCase {
         XCTAssertTrue(TrainTracker(defaults: defaults, routeSettings: settings, clock: { clock.now }).previouslyTracked.isEmpty)
     }
 
-    @MainActor func testIntermediateStopKeepsPollingForArrivalAndPreservesItInHistory() async throws {
+    @MainActor func testIntermediateStopKeepsPollingThroughTheTerminusAndSavesBothReports() async throws {
         let name = "arrival-test-\(UUID())"
         let defaults = UserDefaults(suiteName: name)!
         defer { defaults.removePersistentDomain(forName: name) }
@@ -254,7 +255,19 @@ final class AutoTrackingTests: XCTestCase {
         var arrivalReport = departedStNeots
         arrivalReport.observedAt = date("2026-09-23T09:08:00Z")
         arrivalReport.actualArrival = arrival
-        let provider = TrackingDetailsTestProvider(reports: [departedStNeots, arrivalReport])
+
+        // The terminus report may omit earlier times, including the selected stop's.
+        var later = departedStNeots
+        later.observedAt = date("2026-09-23T09:36:00Z")
+        later.terminalActual = date("2026-09-23T09:34:00Z")
+        later.scheduledArrival = nil
+        later.routeStops?[0].actual = nil
+        later.routeStops?[0].actualDeparture = nil
+        later.routeStops?.append(RouteStop(id: "hun", crs: "HUN", name: "Huntingdon", scheduled: nil, expected: nil,
+            actual: date("2026-09-23T09:17:00Z"), isCancelled: false, estimate: nil, isBoarding: false, isDestination: false))
+        later.routeStops?.append(RouteStop(id: "pbo", crs: "PBO", name: "Peterborough", scheduled: nil, expected: nil,
+            actual: later.terminalActual, isCancelled: false, estimate: nil, isBoarding: false, isDestination: false))
+        let provider = TrackingDetailsTestProvider(reports: [departedStNeots, arrivalReport, later])
         let tracker = TrainTracker(defaults: defaults, provider: provider, routeSettings: RouteSettings(), clock: { clock.now })
         tracker.toggle(service)
 
@@ -268,17 +281,20 @@ final class AutoTrackingTests: XCTestCase {
         clock.now = date("2026-09-23T09:08:00Z")
         await tracker.refresh()
         XCTAssertEqual(tracker.previouslyTracked.first?.reportedArrival, arrival)
+        XCTAssertTrue(tracker.previouslyTracked.first?.needsLiveDetails == true)
+
+        clock.now = date("2026-09-23T09:36:00Z")
+        await tracker.refresh()
+        XCTAssertFalse(try XCTUnwrap(tracker.previouslyTracked.first).needsLiveDetails)
         await tracker.refresh()
 
-        // A later report can still prove the train reached St Neots after omitting its times.
-        var later = departedStNeots
-        later.observedAt = date("2026-09-23T09:19:00Z")
-        later.scheduledArrival = nil
-        later.routeStops?[0].actual = nil
-        later.routeStops?[0].actualDeparture = nil
-        later.routeStops?.append(RouteStop(id: "hun", crs: "HUN", name: "Huntingdon", scheduled: nil, expected: nil,
-            actual: date("2026-09-23T09:17:00Z"), isCancelled: false, estimate: nil, isBoarding: false, isDestination: false))
-        tracker.receive(later)
+        var shortened = later
+        shortened.observedAt = date("2026-09-23T09:37:00Z")
+        shortened.terminalActual = nil
+        shortened.routeStops?.removeLast()
+        tracker.receive(shortened)
+        shortened.terminalActual = shortened.routeStops?.last?.actual
+        tracker.receive(shortened)
 
         clock.now = date("2026-09-24T02:00:00Z")
         let restarted = TrainTracker(defaults: defaults, routeSettings: RouteSettings(), clock: { clock.now })
@@ -288,8 +304,32 @@ final class AutoTrackingTests: XCTestCase {
         XCTAssertEqual(saved.departure.scheduledArrival, scheduledArrival)
         XCTAssertEqual(saved.reportedArrival, arrival)
         XCTAssertEqual(saved.reportedDepartureFromDestination, departure)
-        XCTAssertEqual(saved.departure.routeStops?.map(\.crs), ["SNO", "HUN"])
-        XCTAssertEqual(saved.departure.routePosition?.last.crs, "HUN")
+        XCTAssertEqual(saved.departure.routeStops?.map(\.crs), ["SNO", "HUN", "PBO"])
+        XCTAssertEqual(saved.departure.routePosition?.last.crs, "PBO")
+    }
+
+    @MainActor func testOpeningArchivedJourneyBackfillsTheFinalStopWhenDetailsAreAvailable() async throws {
+        let name = "archive-test-\(UUID())"
+        let defaults = UserDefaults(suiteName: name)!
+        defer { defaults.removePersistentDomain(forName: name) }
+        var saved = train("archived", scheduled: date("2026-09-22T08:12:00Z"))
+        saved.serviceRID = "202609220001"
+        saved.actualArrival = date("2026-09-22T09:02:00Z")
+        saved.observedAt = date("2026-09-22T09:03:00Z")
+        TrackingStore(defaults: defaults).saveJourneys(.init(archived: [TrackedJourney(departure: saved)]))
+
+        var full = saved
+        full.terminalActual = date("2026-09-22T09:30:00Z")
+        full.observedAt = date("2026-09-22T09:31:00Z")
+        full.routeStops = [RouteStop(id: "pbo", crs: "PBO", name: "Peterborough", scheduled: nil, expected: nil,
+            actual: full.terminalActual, isCancelled: false, estimate: nil, isBoarding: false, isDestination: false)]
+        let tracker = TrainTracker(defaults: defaults, provider: TrackingDetailsTestProvider(reports: [full]))
+        await tracker.refreshArchivedJourney(id: saved.id)
+        await tracker.refreshArchivedJourney(id: saved.id)
+
+        let restored = try XCTUnwrap(TrainTracker(defaults: defaults).previouslyTracked.first)
+        XCTAssertEqual(restored.reportedArrival, saved.actualArrival)
+        XCTAssertEqual(restored.departure.routePosition?.last.crs, "PBO")
     }
 
     @MainActor func testOvernightTrainCanFinishAfterReset() {
@@ -340,7 +380,7 @@ private actor TrackingDetailsTestProvider: DepartureProviding {
 
     func serviceDetails(for departure: Departure) async throws -> Departure {
         guard !reports.isEmpty else {
-            XCTFail("The tracker should stop requesting details once the arrival time is reported")
+            XCTFail("The tracker should stop requesting details once the service is complete")
             throw RailAPIError.unavailable
         }
         return reports.removeFirst()

@@ -129,6 +129,17 @@ final class TrainTracker {
         }
     }
 
+    func refreshArchivedJourney(id: String) async {
+        guard let journey = archivedJourneys.first(where: { $0.id == id }),
+              journey.needsLiveDetails, journey.departure.serviceRID != nil,
+              let update = try? await provider.serviceDetails(for: journey.departure), !Task.isCancelled,
+              let index = archivedJourneys.firstIndex(where: { $0.id == id }) else { return }
+        let refreshed = archivedJourneys[index].accepting(update)
+        guard refreshed != archivedJourneys[index] else { return }
+        archivedJourneys[index] = refreshed
+        save()
+    }
+
     func configureAutomatic(_ rule: AutoTrackingRule) {
         guard rule.isValid else { return }
         let index = autoRules.firstIndex { $0.id == rule.id }

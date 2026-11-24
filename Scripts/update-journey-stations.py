@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the CRS-to-stop-ID lookup from stops.txt in the Aubin GB GTFS feed."""
+"""Build the CRS-to-stop-ID lookup from stops.txt in the Transitous National Rail GTFS feed."""
 
 import argparse
 import csv
@@ -10,7 +10,7 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stops", type=Path, help="stops.txt extracted from great_britain_gtfs.zip")
+    parser.add_argument("stops", type=Path, help="stops.txt extracted from gb_national-rail.gtfs.zip")
     args = parser.parse_args()
     station_ids = {}
     with args.stops.open(encoding="utf-8-sig", newline="") as source:

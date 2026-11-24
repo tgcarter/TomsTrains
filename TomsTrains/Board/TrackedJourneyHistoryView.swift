@@ -105,6 +105,7 @@ private struct TrackedJourneyHistoryDetails: View {
         .navigationTitle("Tracked journey")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
+        .task(id: id) { await tracker.refreshArchivedJourney(id: id) }
     }
 
     private func time(_ date: Date?, for service: Departure) -> String {

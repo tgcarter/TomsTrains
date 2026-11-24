@@ -99,6 +99,7 @@ struct PlannedJourney: Decodable {
 struct JourneyPlanningProvider {
     static let railModes = ["HIGHSPEED_RAIL", "LONG_DISTANCE", "NIGHT_RAIL", "REGIONAL_RAIL", "SUBURBAN"]
     private static let endpoint = URL(string: "https://api.transitous.org/api/v6/plan")!
+    private static let feedPrefix = "gb-national-rail_"
 
     enum Failure: LocalizedError {
         case unavailable
@@ -120,8 +121,8 @@ struct JourneyPlanningProvider {
     static func request(from: String, to: String, mode: JourneySearchMode, time: Date) -> URLRequest {
         var url = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)!
         url.queryItems = [
-            URLQueryItem(name: "fromPlace", value: "gb-great-britain_\(from)"),
-            URLQueryItem(name: "toPlace", value: "gb-great-britain_\(to)"),
+            URLQueryItem(name: "fromPlace", value: feedPrefix + from),
+            URLQueryItem(name: "toPlace", value: feedPrefix + to),
             URLQueryItem(name: "time", value: ISO8601DateFormatter().string(from: time)),
             URLQueryItem(name: "arriveBy", value: mode == .arriveBy ? "true" : "false"),
             URLQueryItem(name: "transitModes", value: railModes.joined(separator: ",")),

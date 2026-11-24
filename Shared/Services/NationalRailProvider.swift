@@ -9,7 +9,7 @@ struct NationalRailProvider: DepartureProviding {
     private let reference: NationalRailReference
     private let clock: @Sendable () -> Date
     static let baseURL = URL(string: "https://api1.raildata.org.uk/1010-live-departure-board---staff-version1_0/LDBSVWS/api/20220120/")!
-    static let detailsURL = URL(string: "https://api1.raildata.org.uk/1010-query-services-and-service-details1_0/LDBSVWS/api/20220120/")!
+    private static let detailsURL = URL(string: "https://api1.raildata.org.uk/1010-query-services-and-service-details1_0/LDBSVWS/api/20220120/")!
 
     init(settings: RouteSettings = RouteSettings(),
          apiKey: String = Bundle.main.object(forInfoDictionaryKey: "NationalRailBoardAPIKey") as? String ?? "",
@@ -36,7 +36,7 @@ struct NationalRailProvider: DepartureProviding {
         // The API returns a time window, not the next N trains. Search both origins
         // in each window, including after midnight, until the requested number of trains is available.
         // Do not fill tonight's board with the following morning's services.
-        let searchStart = tomorrow ? settings.travelDayEnd(after: date) : RailDate.minuteStart(date).addingTimeInterval(-60)
+        let searchStart = tomorrow ? settings.travelDayEnd(after: date) : date.addingTimeInterval(-60)
         let cutoff = settings.travelDayEnd(after: tomorrow ? searchStart : date)
         for offset in stride(from: 0, to: 1560, by: 120) {
             try Task.checkCancellation()
